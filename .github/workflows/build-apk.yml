@@ -55,7 +55,7 @@ jobs:
 
       - name: Restore keystore
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/mei-control.jks
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode --ignore-garbage > android/app/mei-control.jks
 
       - name: Build APK (distribuição direta)
         if: ${{ github.event.inputs.profile != 'aab' }}
