@@ -1,4 +1,4 @@
-name: Build APK
+name: Build Android
 
 on:
   push:
@@ -9,15 +9,15 @@ on:
       profile:
         description: 'Build profile'
         required: true
-        default: 'preview'
+        default: 'apk'
         type: choice
         options:
-          - preview
-          - production
+          - apk
+          - aab
 
 jobs:
   build:
-    name: Build Android APK
+    name: Build Android (${{ github.event.inputs.profile || 'apk' }})
     runs-on: ubuntu-latest
 
     steps:
@@ -43,7 +43,7 @@ jobs:
         run: npm ci --legacy-peer-deps
 
       - name: Install Expo CLI
-        run: npm install -g expo-cli@latest @expo/cli@latest
+        run: npm install -g @expo/cli@latest
 
       - name: Generate native Android project
         run: npx expo prebuild --platform android --clean
@@ -53,16 +53,42 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x android/gradlew
 
-      - name: Build APK
+      - name: Restore keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/mei-control.jks
+
+      - name: Build APK (distribuição direta)
+        if: ${{ github.event.inputs.profile != 'aab' }}
         run: |
           cd android
-          ./gradlew assembleRelease
-        env:
-          EXPO_PUBLIC_ACTIVATION_SALT: ${{ secrets.ACTIVATION_SALT }}
+          ./gradlew assembleRelease \
+            -Pandroid.injected.signing.store.file=$GITHUB_WORKSPACE/android/app/mei-control.jks \
+            -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD }} \
+            -Pandroid.injected.signing.key.alias=${{ secrets.KEY_ALIAS }} \
+            -Pandroid.injected.signing.key.password=${{ secrets.KEY_PASSWORD }}
+
+      - name: Build AAB (Play Store)
+        if: ${{ github.event.inputs.profile == 'aab' }}
+        run: |
+          cd android
+          ./gradlew bundleRelease \
+            -Pandroid.injected.signing.store.file=$GITHUB_WORKSPACE/android/app/mei-control.jks \
+            -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD }} \
+            -Pandroid.injected.signing.key.alias=${{ secrets.KEY_ALIAS }} \
+            -Pandroid.injected.signing.key.password=${{ secrets.KEY_PASSWORD }}
 
       - name: Upload APK
+        if: ${{ github.event.inputs.profile != 'aab' }}
         uses: actions/upload-artifact@v4
         with:
           name: mei-control-pro-${{ github.ref_name }}.apk
           path: android/app/build/outputs/apk/release/app-release.apk
+          retention-days: 30
+
+      - name: Upload AAB
+        if: ${{ github.event.inputs.profile == 'aab' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: mei-control-pro-${{ github.ref_name }}.aab
+          path: android/app/build/outputs/bundle/release/app-release.aab
           retention-days: 30
