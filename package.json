@@ -16,6 +16,7 @@
     "expo-sharing": "~56.0.16",
     "expo-sqlite": "~56.0.4",
     "expo-status-bar": "~56.0.4",
+    "js-sha256": "^0.11.1",
     "nativewind": "^4.2.5",
     "react": "19.2.3",
     "react-native": "0.85.3",
