@@ -16,7 +16,7 @@
       "allowBackup": true,
       "adaptiveIcon": {
         "backgroundColor": "#7C3AED",
-        "foregroundImage": "./assets/icon.png"
+        "foregroundImage": "./assets/adaptive-icon-foreground.png"
       },
       "predictiveBackGestureEnabled": false
     },

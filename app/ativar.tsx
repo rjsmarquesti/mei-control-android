@@ -4,9 +4,12 @@ import {
   KeyboardAvoidingView, Platform, ScrollView, Alert, ActivityIndicator, Image,
 } from 'react-native'
 import { router } from 'expo-router'
+import Constants from 'expo-constants'
 import { validateCode } from '../lib/activation'
 import { setConfig, getConfig } from '../lib/db'
 import { COLORS, FONTS, RADIUS } from '../constants/theme'
+
+const APP_VERSION = Constants.expoConfig?.version ?? '1.0'
 
 const MAX_TENTATIVAS = 5
 const LOCKOUT_MS = 30 * 60 * 1000  // 30 minutos
@@ -127,6 +130,7 @@ export default function AtivarScreen() {
             resizeMode="contain"
           />
           <Text style={s.badge}>PRO</Text>
+          <Text style={s.version}>v{APP_VERSION}</Text>
         </View>
 
         <Text style={s.title}>Ativar aplicativo</Text>
@@ -230,4 +234,5 @@ const s = StyleSheet.create({
   btnDisabled: { opacity: 0.6 },
   btnText: { color: '#fff', fontSize: FONTS.md, fontWeight: '700' },
   help: { marginTop: 24, fontSize: FONTS.sm, color: COLORS.textLight, textAlign: 'center', lineHeight: 18 },
+  version: { fontSize: FONTS.xs ?? 11, color: COLORS.textLight, marginTop: 4 },
 })

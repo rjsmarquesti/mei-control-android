@@ -45,6 +45,9 @@ jobs:
       - name: Install Expo CLI
         run: npm install -g @expo/cli@latest
 
+      - name: Create .env with secrets
+        run: echo "EXPO_PUBLIC_ACTIVATION_SALT=${{ secrets.ACTIVATION_SALT }}" > .env
+
       - name: Generate native Android project
         run: npx expo prebuild --platform android --clean
         env:
