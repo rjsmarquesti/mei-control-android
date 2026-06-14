@@ -15,6 +15,9 @@ on:
           - apk
           - aab
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build:
     name: Build Android (${{ github.event.inputs.profile || 'apk' }})
