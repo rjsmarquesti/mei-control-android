@@ -1,6 +1,6 @@
 import { hmac } from 'js-sha256'
 
-const SALT = process.env['EXPO_PUBLIC_ACTIVATION_SALT'] ?? 'mei-kit-2026-prod'
+const SALT = 'mei-kit-2026-prod'
 
 export async function generateCode(email: string): Promise<string> {
   const hash = hmac(SALT, email.toLowerCase().trim())
