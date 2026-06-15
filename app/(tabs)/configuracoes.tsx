@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, Alert, TextInput } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useFocusEffect, router } from 'expo-router'
 import { getConfig, setConfig, resetAllData, getDasList } from '../../lib/db'
 import { agendarAlertasDAS, enviarNotificacaoTeste, requestNotificationPermission } from '../../lib/notifications'
@@ -32,6 +33,7 @@ function formatCEP(raw: string): string {
 }
 
 export default function ConfiguracoesScreen() {
+  const insets = useSafeAreaInsets()
   const [diasAntes, setDiasAntes] = useState(5)
   const [notifPermitida, setNotifPermitida] = useState(false)
 
@@ -114,8 +116,8 @@ export default function ConfiguracoesScreen() {
   }
 
   return (
-    <SafeAreaView style={s.safe}>
-      <ScrollView contentContainerStyle={s.container} keyboardShouldPersistTaps="handled">
+    <SafeAreaView style={[s.safe, { paddingTop: insets.top }]}>
+      <ScrollView contentContainerStyle={[s.container, { paddingBottom: insets.bottom + 40 }]} keyboardShouldPersistTaps="handled">
         <Text style={s.title}>Configurações</Text>
 
         {/* PERFIL MEI */}

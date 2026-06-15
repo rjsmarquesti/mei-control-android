@@ -2,7 +2,9 @@ import { useState, useCallback } from 'react'
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
   Modal, TextInput, Alert, SafeAreaView,
+  KeyboardAvoidingView, Platform,
 } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useFocusEffect } from 'expo-router'
 import * as ScreenCapture from 'expo-screen-capture'
 import { Ionicons } from '@expo/vector-icons'
@@ -14,6 +16,7 @@ const CATEGORIAS_RECEITA = ['Vendas', 'Serviços', 'Outros']
 const CATEGORIAS_DESPESA = ['Compras', 'Aluguel', 'Transporte', 'Marketing', 'Equipamentos', 'Outros']
 
 export default function FinanceiroScreen() {
+  const insets = useSafeAreaInsets()
   const hoje = new Date()
   const mesAtual = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`
 
@@ -70,7 +73,7 @@ export default function FinanceiroScreen() {
   const categorias = tipo === 'receita' ? CATEGORIAS_RECEITA : CATEGORIAS_DESPESA
 
   return (
-    <SafeAreaView style={s.safe}>
+    <SafeAreaView style={[s.safe, { paddingTop: insets.top }]}>
       <View style={s.header}>
         <Text style={s.title}>Financeiro</Text>
         <View style={s.headerActions}>
@@ -132,38 +135,42 @@ export default function FinanceiroScreen() {
       </ScrollView>
 
       <Modal visible={modalVisible} animationType="slide" transparent>
-        <View style={s.overlay}>
-          <View style={s.modal}>
-            <Text style={s.modalTitle}>Novo lançamento</Text>
-            <View style={s.tipoRow}>
-              {(['receita', 'despesa'] as const).map(t => (
-                <TouchableOpacity key={t}
-                  style={[s.tipoBtn, tipo === t && { backgroundColor: t === 'receita' ? COLORS.successLight : COLORS.dangerLight, borderColor: t === 'receita' ? COLORS.success : COLORS.danger }]}
-                  onPress={() => { setTipo(t); setForm(f => ({ ...f, categoria: t === 'receita' ? 'Vendas' : 'Compras' })) }}>
-                  <Text style={[s.tipoText, tipo === t && { color: COLORS.text }]}>{t === 'receita' ? 'Receita' : 'Despesa'}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-            <Text style={s.label}>Descrição</Text>
-            <TextInput style={s.input} value={form.descricao} onChangeText={t => setForm(f => ({ ...f, descricao: t }))} placeholder="Ex: Venda de produto" placeholderTextColor={COLORS.textLight} />
-            <Text style={s.label}>Valor (R$)</Text>
-            <TextInput style={s.input} value={form.valor} onChangeText={t => setForm(f => ({ ...f, valor: t }))} keyboardType="decimal-pad" placeholder="0,00" placeholderTextColor={COLORS.textLight} />
-            <Text style={s.label}>Data (AAAA-MM-DD)</Text>
-            <TextInput style={s.input} value={form.data} onChangeText={t => setForm(f => ({ ...f, data: t }))} placeholder="2025-01-15" placeholderTextColor={COLORS.textLight} />
-            <Text style={s.label}>Categoria</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
-              {categorias.map(c => (
-                <TouchableOpacity key={c} style={[s.catBtn, form.categoria === c && s.catBtnActive]} onPress={() => setForm(f => ({ ...f, categoria: c }))}>
-                  <Text style={[s.catBtnText, form.categoria === c && s.catBtnTextActive]}>{c}</Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-            <View style={s.modalBtns}>
-              <TouchableOpacity style={s.cancelBtn} onPress={() => setModalVisible(false)}><Text style={s.cancelText}>Cancelar</Text></TouchableOpacity>
-              <TouchableOpacity style={s.saveBtn} onPress={salvar}><Text style={s.saveText}>Salvar</Text></TouchableOpacity>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+          <View style={s.overlay}>
+            <View style={[s.modal, { paddingBottom: insets.bottom + 16 }]}>
+              <Text style={s.modalTitle}>Novo lançamento</Text>
+              <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+                <View style={s.tipoRow}>
+                  {(['receita', 'despesa'] as const).map(t => (
+                    <TouchableOpacity key={t}
+                      style={[s.tipoBtn, tipo === t && { backgroundColor: t === 'receita' ? COLORS.successLight : COLORS.dangerLight, borderColor: t === 'receita' ? COLORS.success : COLORS.danger }]}
+                      onPress={() => { setTipo(t); setForm(f => ({ ...f, categoria: t === 'receita' ? 'Vendas' : 'Compras' })) }}>
+                      <Text style={[s.tipoText, tipo === t && { color: COLORS.text }]}>{t === 'receita' ? 'Receita' : 'Despesa'}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+                <Text style={s.label}>Descrição</Text>
+                <TextInput style={s.input} value={form.descricao} onChangeText={t => setForm(f => ({ ...f, descricao: t }))} placeholder="Ex: Venda de produto" placeholderTextColor={COLORS.textLight} />
+                <Text style={s.label}>Valor (R$)</Text>
+                <TextInput style={s.input} value={form.valor} onChangeText={t => setForm(f => ({ ...f, valor: t }))} keyboardType="decimal-pad" placeholder="0,00" placeholderTextColor={COLORS.textLight} />
+                <Text style={s.label}>Data (AAAA-MM-DD)</Text>
+                <TextInput style={s.input} value={form.data} onChangeText={t => setForm(f => ({ ...f, data: t }))} placeholder="2025-01-15" placeholderTextColor={COLORS.textLight} />
+                <Text style={s.label}>Categoria</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
+                  {categorias.map(c => (
+                    <TouchableOpacity key={c} style={[s.catBtn, form.categoria === c && s.catBtnActive]} onPress={() => setForm(f => ({ ...f, categoria: c }))}>
+                      <Text style={[s.catBtnText, form.categoria === c && s.catBtnTextActive]}>{c}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+                <View style={s.modalBtns}>
+                  <TouchableOpacity style={s.cancelBtn} onPress={() => setModalVisible(false)}><Text style={s.cancelText}>Cancelar</Text></TouchableOpacity>
+                  <TouchableOpacity style={s.saveBtn} onPress={salvar}><Text style={s.saveText}>Salvar</Text></TouchableOpacity>
+                </View>
+              </ScrollView>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </SafeAreaView>
   )

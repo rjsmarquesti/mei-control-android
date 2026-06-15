@@ -2,7 +2,9 @@ import { useState, useCallback } from 'react'
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
   Modal, TextInput, Alert, RefreshControl, SafeAreaView,
+  KeyboardAvoidingView, Platform,
 } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useFocusEffect } from 'expo-router'
 import * as ScreenCapture from 'expo-screen-capture'
 import { Ionicons } from '@expo/vector-icons'
@@ -13,6 +15,7 @@ import { openGovLink } from '../../lib/gov-links'
 import { COLORS, FONTS, RADIUS } from '../../constants/theme'
 
 export default function DasScreen() {
+  const insets = useSafeAreaInsets()
   const [das, setDas] = useState<DasRow[]>([])
   const [modalVisible, setModalVisible] = useState(false)
   const [exporting, setExporting] = useState(false)
@@ -66,7 +69,7 @@ export default function DasScreen() {
   }
 
   return (
-    <SafeAreaView style={s.safe}>
+    <SafeAreaView style={[s.safe, { paddingTop: insets.top }]}>
       <View style={s.header}>
         <Text style={s.title}>Guia DAS</Text>
         <View style={s.headerActions}>
@@ -132,27 +135,31 @@ export default function DasScreen() {
       </ScrollView>
 
       <Modal visible={modalVisible} animationType="slide" transparent>
-        <View style={s.overlay}>
-          <View style={s.modal}>
-            <Text style={s.modalTitle}>Novo DAS</Text>
-            <Text style={s.label}>Competência (AAAA-MM)</Text>
-            <TextInput style={s.input} value={form.competencia} onChangeText={t => {
-              setForm(f => ({ ...f, competencia: t, vencimento: t.length === 7 ? vencimentoDas(t) : f.vencimento }))
-            }} placeholder="2025-01" placeholderTextColor={COLORS.textLight} />
-            <Text style={s.label}>Valor (R$)</Text>
-            <TextInput style={s.input} value={form.valor} onChangeText={t => setForm(f => ({ ...f, valor: t }))} keyboardType="decimal-pad" placeholder="75,90" placeholderTextColor={COLORS.textLight} />
-            <Text style={s.label}>Vencimento (AAAA-MM-DD)</Text>
-            <TextInput style={s.input} value={form.vencimento} onChangeText={t => setForm(f => ({ ...f, vencimento: t }))} placeholder="2025-02-20" placeholderTextColor={COLORS.textLight} />
-            <View style={s.modalBtns}>
-              <TouchableOpacity style={s.cancelBtn} onPress={() => setModalVisible(false)}>
-                <Text style={s.cancelText}>Cancelar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={s.saveBtn} onPress={salvar}>
-                <Text style={s.saveText}>Salvar</Text>
-              </TouchableOpacity>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+          <View style={s.overlay}>
+            <View style={[s.modal, { paddingBottom: insets.bottom + 16 }]}>
+              <Text style={s.modalTitle}>Novo DAS</Text>
+              <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+                <Text style={s.label}>Competência (AAAA-MM)</Text>
+                <TextInput style={s.input} value={form.competencia} onChangeText={t => {
+                  setForm(f => ({ ...f, competencia: t, vencimento: t.length === 7 ? vencimentoDas(t) : f.vencimento }))
+                }} placeholder="2025-01" placeholderTextColor={COLORS.textLight} />
+                <Text style={s.label}>Valor (R$)</Text>
+                <TextInput style={s.input} value={form.valor} onChangeText={t => setForm(f => ({ ...f, valor: t }))} keyboardType="decimal-pad" placeholder="75,90" placeholderTextColor={COLORS.textLight} />
+                <Text style={s.label}>Vencimento (AAAA-MM-DD)</Text>
+                <TextInput style={s.input} value={form.vencimento} onChangeText={t => setForm(f => ({ ...f, vencimento: t }))} placeholder="2025-02-20" placeholderTextColor={COLORS.textLight} />
+                <View style={s.modalBtns}>
+                  <TouchableOpacity style={s.cancelBtn} onPress={() => setModalVisible(false)}>
+                    <Text style={s.cancelText}>Cancelar</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={s.saveBtn} onPress={salvar}>
+                    <Text style={s.saveText}>Salvar</Text>
+                  </TouchableOpacity>
+                </View>
+              </ScrollView>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </SafeAreaView>
   )
