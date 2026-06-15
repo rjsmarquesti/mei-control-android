@@ -202,7 +202,7 @@ export default function AtivarScreen() {
 
 const s = StyleSheet.create({
   flex: { flex: 1, backgroundColor: COLORS.bg },
-  container: { flexGrow: 1, justifyContent: 'center', padding: 24 },
+  container: { flexGrow: 1, justifyContent: 'flex-start', padding: 24, paddingTop: 60 },
   logoBox: { alignItems: 'center', marginBottom: 32 },
   logoImg: { width: 120, height: 120, marginBottom: 8 },
   badge: {
