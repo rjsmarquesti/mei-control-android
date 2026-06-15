@@ -1,4 +1,4 @@
-// Porta direta de sismei-lowticket/lib/das.ts — lógica pura sem deps de browser
+import { getMeiConfig } from './mei-config'
 
 export interface DasCalculo {
   valorOriginal: number
@@ -40,6 +40,5 @@ export function vencimentoDas(competencia: string): string {
 }
 
 export function valorDasMEI(): number {
-  // Valor 2025: R$ 75,90 (INSS 5% sobre salário mínimo R$1.518)
-  return 75.90
+  return getMeiConfig().valorDAS
 }

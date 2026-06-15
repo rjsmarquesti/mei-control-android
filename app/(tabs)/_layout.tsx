@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { COLORS } from '../../constants/theme'
 import { getConfig } from '../../lib/db'
+import { fetchMeiConfig } from '../../lib/mei-config'
 
 type IoniconName = React.ComponentProps<typeof Ionicons>['name']
 
@@ -17,6 +18,8 @@ export default function TabsLayout() {
   useEffect(() => {
     if (getConfig('activated') !== 'true') {
       router.replace('/ativar')
+    } else {
+      fetchMeiConfig() // atualiza cache em background, sem bloquear o app
     }
   }, [])
 

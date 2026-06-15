@@ -1,4 +1,4 @@
-// Porta direta de sismei-lowticket/lib/irpf.ts — lógica pura sem deps de browser
+import { getMeiConfig } from './mei-config'
 
 export const ATIVIDADES = [
   { id: 'comercio', label: 'Comércio / Indústria', pct: 0.08 },
@@ -21,18 +21,10 @@ export interface SimulacaoIRPF {
   aliquotaEfetiva: number
 }
 
-// Tabela progressiva IRPF 2024 (anual)
-const FAIXAS = [
-  { limite: 22847.76, aliquota: 0, deducao: 0 },
-  { limite: 33919.80, aliquota: 0.075, deducao: 1713.58 },
-  { limite: 45012.60, aliquota: 0.15, deducao: 4257.57 },
-  { limite: 55976.16, aliquota: 0.225, deducao: 7633.51 },
-  { limite: Infinity, aliquota: 0.275, deducao: 10432.32 },
-]
-
 function calcularImpostoProgressivo(base: number): number {
   if (base <= 0) return 0
-  for (const faixa of FAIXAS) {
+  const faixas = getMeiConfig().tabelaIRPF
+  for (const faixa of faixas) {
     if (base <= faixa.limite) {
       return Math.max(0, base * faixa.aliquota - faixa.deducao)
     }

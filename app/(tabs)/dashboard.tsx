@@ -4,12 +4,13 @@ import { useFocusEffect } from 'expo-router'
 import { BarChart } from 'react-native-gifted-charts'
 import { getTransactions, getDasList, getConfig } from '../../lib/db'
 import { calcularDasComAtraso } from '../../lib/das'
-import { COLORS, FONTS, RADIUS, LIMITE_MEI_ANUAL } from '../../constants/theme'
+import { getMeiConfig } from '../../lib/mei-config'
+import { COLORS, FONTS, RADIUS } from '../../constants/theme'
 
 const { width } = Dimensions.get('window')
 
 export default function DashboardScreen() {
-  const [kpis, setKpis] = useState<{ receitas: number; despesas: number; saldo: number; dasStatus: string; dasStatusColor: string; receitaAnual: number; limitePct: number }>({ receitas: 0, despesas: 0, saldo: 0, dasStatus: '...', dasStatusColor: COLORS.textMuted, receitaAnual: 0, limitePct: 0 })
+  const [kpis, setKpis] = useState<{ receitas: number; despesas: number; saldo: number; dasStatus: string; dasStatusColor: string; receitaAnual: number; limitePct: number; limiteAnual: number }>({ receitas: 0, despesas: 0, saldo: 0, dasStatus: '...', dasStatusColor: COLORS.textMuted, receitaAnual: 0, limitePct: 0, limiteAnual: getMeiConfig().limiteAnualMEI })
   const [grafico, setGrafico] = useState<{ label: string; receita: number; despesa: number }[]>([])
   const [alertas, setAlertas] = useState<string[]>([])
   const [email, setEmail] = useState('')
@@ -36,7 +37,8 @@ export default function DashboardScreen() {
 
     const txAno = getTransactions(String(hoje.getFullYear()))
     const receitaAnual = txAno.filter(t => t.type === 'receita').reduce((s, t) => s + t.valor, 0)
-    const limitePct = Math.min(100, (receitaAnual / LIMITE_MEI_ANUAL) * 100)
+    const limiteAnual = getMeiConfig().limiteAnualMEI
+    const limitePct = Math.min(100, (receitaAnual / limiteAnual) * 100)
 
     const dasList = getDasList()
     const novosAlertas: string[] = []
@@ -59,7 +61,7 @@ export default function DashboardScreen() {
     }
 
     setAlertas(novosAlertas)
-    setKpis({ receitas, despesas, saldo: receitas - despesas, dasStatus, dasStatusColor, receitaAnual, limitePct })
+    setKpis({ receitas, despesas, saldo: receitas - despesas, dasStatus, dasStatusColor, receitaAnual, limitePct, limiteAnual })
 
     // Gráfico: últimos 6 meses
     const meses = []
@@ -129,7 +131,7 @@ export default function DashboardScreen() {
             }]} />
           </View>
           <Text style={s.limiteValores}>
-            R$ {kpis.receitaAnual.toLocaleString('pt-BR')} de R$ {LIMITE_MEI_ANUAL.toLocaleString('pt-BR')}
+            R$ {kpis.receitaAnual.toLocaleString('pt-BR')} de R$ {kpis.limiteAnual.toLocaleString('pt-BR')}
           </Text>
           {kpis.limitePct >= 80 && (
             <Text style={s.limiteAviso}>⚠️ Próximo do limite MEI! Considere regularizar sua situação.</Text>
