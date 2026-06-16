@@ -1,5 +1,5 @@
 import * as Notifications from 'expo-notifications'
-import { DasRow } from './db'
+import { DasRow, getConfig, setConfig } from './db'
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -54,6 +54,53 @@ export async function agendarAlertasDAS(das: DasRow[], diasAntes: number): Promi
         trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: venc },
       })
     }
+  }
+}
+
+export async function agendarLembreteMensalDAS(): Promise<void> {
+  const granted = await requestNotificationPermission()
+  if (!granted) return
+  if (getConfig('lembreteMensalAgendado') === 'true') return
+
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title: '📋 Emitir DAS deste mês',
+      body: 'Não esqueça de emitir e registrar o DAS no PGMEI.',
+    },
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.CALENDAR,
+      repeats: true,
+      day: 5,
+      hour: 9,
+      minute: 0,
+    },
+  })
+  setConfig('lembreteMensalAgendado', 'true')
+}
+
+export async function verificarAlerteLimiteMEI(receitaAnual: number, limiteAnual: number): Promise<void> {
+  if (receitaAnual <= 0) return
+  const ano = String(new Date().getFullYear())
+  const pct = receitaAnual / limiteAnual
+
+  if (pct >= 0.90 && getConfig('alertaLimite90Ano') !== ano) {
+    setConfig('alertaLimite90Ano', ano)
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: '🚨 90% do limite MEI atingido!',
+        body: `Receita anual de R$ ${receitaAnual.toLocaleString('pt-BR')}. Consulte um contador sobre migração para ME.`,
+      },
+      trigger: { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds: 2 },
+    })
+  } else if (pct >= 0.75 && getConfig('alertaLimite75Ano') !== ano) {
+    setConfig('alertaLimite75Ano', ano)
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: '⚠️ 75% do limite MEI atingido',
+        body: `Receita anual de R$ ${receitaAnual.toLocaleString('pt-BR')}. Fique atento ao limite de R$ ${limiteAnual.toLocaleString('pt-BR')}.`,
+      },
+      trigger: { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds: 2 },
+    })
   }
 }
 

@@ -5,10 +5,11 @@ import {
   KeyboardAvoidingView, Platform,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { DateTimePickerAndroid } from '@react-native-community/datetimepicker'
 import { useFocusEffect } from 'expo-router'
 import * as ScreenCapture from 'expo-screen-capture'
 import { Ionicons } from '@expo/vector-icons'
-import { getDasList, upsertDas, marcarDasPago, deleteDas, DasRow } from '../../lib/db'
+import { getDasList, upsertDas, updateDas, marcarDasPago, deleteDas, DasRow } from '../../lib/db'
 import { calcularDasComAtraso, vencimentoDas, valorDasMEI } from '../../lib/das'
 import { exportDasPDF } from '../../lib/pdf'
 import { openGovLink } from '../../lib/gov-links'
@@ -18,6 +19,7 @@ export default function DasScreen() {
   const insets = useSafeAreaInsets()
   const [das, setDas] = useState<DasRow[]>([])
   const [modalVisible, setModalVisible] = useState(false)
+  const [editingId, setEditingId] = useState<number | null>(null)
   const [exporting, setExporting] = useState(false)
   const [form, setForm] = useState({ competencia: '', valor: '', vencimento: '' })
 
@@ -29,11 +31,28 @@ export default function DasScreen() {
 
   function load() { setDas(getDasList()) }
 
-  function abrirModal() {
+  function abrirNovo() {
     const hoje = new Date()
     const competencia = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`
+    setEditingId(null)
     setForm({ competencia, valor: valorDasMEI().toFixed(2), vencimento: vencimentoDas(competencia) })
     setModalVisible(true)
+  }
+
+  function abrirEditar(item: DasRow) {
+    setEditingId(item.id!)
+    setForm({ competencia: item.competencia, valor: String(item.valor), vencimento: item.vencimento })
+    setModalVisible(true)
+  }
+
+  function abrirDatePicker() {
+    const parts = form.vencimento.split('-').map(Number)
+    const date = parts.length === 3 ? new Date(parts[0], parts[1] - 1, parts[2]) : new Date()
+    DateTimePickerAndroid.open({
+      value: date,
+      onChange: (_, selected) => { if (selected) setForm(f => ({ ...f, vencimento: selected.toISOString().slice(0, 10) })) },
+      mode: 'date',
+    })
   }
 
   function salvar() {
@@ -41,8 +60,14 @@ export default function DasScreen() {
       Alert.alert('Campos obrigatórios', 'Preencha todos os campos.')
       return
     }
-    upsertDas({ competencia: form.competencia, valor: parseFloat(form.valor.replace(',', '.')), vencimento: form.vencimento, pago: false })
+    const valor = parseFloat(form.valor.replace(',', '.'))
+    if (editingId !== null) {
+      updateDas(editingId, { competencia: form.competencia, valor, vencimento: form.vencimento })
+    } else {
+      upsertDas({ competencia: form.competencia, valor, vencimento: form.vencimento, pago: false })
+    }
     setModalVisible(false)
+    setEditingId(null)
     load()
   }
 
@@ -76,7 +101,7 @@ export default function DasScreen() {
           <TouchableOpacity onPress={handleExport} style={s.iconBtn} disabled={exporting}>
             <Ionicons name="download-outline" size={22} color={COLORS.primary} />
           </TouchableOpacity>
-          <TouchableOpacity onPress={abrirModal} style={s.addBtn}>
+          <TouchableOpacity onPress={abrirNovo} style={s.addBtn}>
             <Ionicons name="add" size={20} color="#fff" />
             <Text style={s.addBtnText}>Novo</Text>
           </TouchableOpacity>
@@ -124,6 +149,11 @@ export default function DasScreen() {
                     <Text style={s.pagoText}>Pago em {item.pagadoEm}</Text>
                   </View>
                 )}
+                {!item.pago && (
+                  <TouchableOpacity style={s.actionBtn} onPress={() => abrirEditar(item)}>
+                    <Ionicons name="pencil-outline" size={15} color={COLORS.textLight} />
+                  </TouchableOpacity>
+                )}
                 <TouchableOpacity style={s.actionBtn} onPress={() => confirmarDelete(item)}>
                   <Ionicons name="trash-outline" size={16} color={COLORS.danger} />
                 </TouchableOpacity>
@@ -131,14 +161,14 @@ export default function DasScreen() {
             </View>
           )
         })}
-        <View style={{ height: 24 }} />
+        <View style={{ height: insets.bottom + 24 }} />
       </ScrollView>
 
       <Modal visible={modalVisible} animationType="slide" transparent>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
           <View style={s.overlay}>
             <View style={[s.modal, { paddingBottom: insets.bottom + 16 }]}>
-              <Text style={s.modalTitle}>Novo DAS</Text>
+              <Text style={s.modalTitle}>{editingId ? 'Editar DAS' : 'Novo DAS'}</Text>
               <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
                 <Text style={s.label}>Competência (AAAA-MM)</Text>
                 <TextInput style={s.input} value={form.competencia} onChangeText={t => {
@@ -146,10 +176,13 @@ export default function DasScreen() {
                 }} placeholder="2025-01" placeholderTextColor={COLORS.textLight} />
                 <Text style={s.label}>Valor (R$)</Text>
                 <TextInput style={s.input} value={form.valor} onChangeText={t => setForm(f => ({ ...f, valor: t }))} keyboardType="decimal-pad" placeholder="75,90" placeholderTextColor={COLORS.textLight} />
-                <Text style={s.label}>Vencimento (AAAA-MM-DD)</Text>
-                <TextInput style={s.input} value={form.vencimento} onChangeText={t => setForm(f => ({ ...f, vencimento: t }))} placeholder="2025-02-20" placeholderTextColor={COLORS.textLight} />
+                <Text style={s.label}>Vencimento</Text>
+                <TouchableOpacity style={s.datePicker} onPress={abrirDatePicker}>
+                  <Text style={s.datePickerText}>{form.vencimento || 'Selecionar data'}</Text>
+                  <Ionicons name="calendar-outline" size={18} color={COLORS.primary} />
+                </TouchableOpacity>
                 <View style={s.modalBtns}>
-                  <TouchableOpacity style={s.cancelBtn} onPress={() => setModalVisible(false)}>
+                  <TouchableOpacity style={s.cancelBtn} onPress={() => { setModalVisible(false); setEditingId(null) }}>
                     <Text style={s.cancelText}>Cancelar</Text>
                   </TouchableOpacity>
                   <TouchableOpacity style={s.saveBtn} onPress={salvar}>
@@ -197,6 +230,8 @@ const s = StyleSheet.create({
   modalTitle: { fontSize: FONTS.lg, fontWeight: '700', color: COLORS.text, marginBottom: 20 },
   label: { fontSize: FONTS.sm, fontWeight: '600', color: COLORS.text, marginBottom: 4 },
   input: { borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.md, paddingHorizontal: 14, paddingVertical: 11, fontSize: FONTS.base, color: COLORS.text, backgroundColor: COLORS.bg, marginBottom: 14 },
+  datePicker: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.md, paddingHorizontal: 14, paddingVertical: 11, backgroundColor: COLORS.bg, marginBottom: 14 },
+  datePickerText: { fontSize: FONTS.base, color: COLORS.text },
   modalBtns: { flexDirection: 'row', gap: 10, marginTop: 4 },
   cancelBtn: { flex: 1, padding: 13, borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.md, alignItems: 'center' },
   cancelText: { color: COLORS.textMuted, fontWeight: '600' },

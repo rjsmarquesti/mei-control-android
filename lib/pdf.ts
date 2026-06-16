@@ -2,6 +2,7 @@ import * as Print from 'expo-print'
 import * as Sharing from 'expo-sharing'
 import { DasRow, Transaction, getConfig } from './db'
 import { calcularDasComAtraso } from './das'
+import { SimulacaoIRPF } from './irpf'
 
 function getPerfil() {
   const cnpjRaw = getConfig('cnpj') ?? ''
@@ -163,4 +164,49 @@ export async function exportFinanceiroPDF(transactions: Transaction[], mesAno: s
     </table>`
 
   await share(buildHtml('Extrato Financeiro', `Período: ${mesAno} · ${transactions.length} lançamento(s)`, body), `Financeiro-${mesAno}.pdf`)
+}
+
+export async function exportIRPFPDF(sim: SimulacaoIRPF, atividadeLabel: string, atividadePct: number): Promise<void> {
+  const fmt = (v: number) => `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+  const pctIsento = ((1 - atividadePct) * 100).toFixed(0)
+  const pctTrib = (atividadePct * 100).toFixed(0)
+
+  const rows: [string, string, boolean?, string?][] = [
+    ['Atividade', atividadeLabel],
+    [`Rendimento isento (${pctIsento}%)`, fmt(sim.rendimentoIsento), false, '#16A34A'],
+    [`Rendimento tributável (${pctTrib}%)`, fmt(sim.rendimentoTributavel)],
+    ['(-) DAS pago', fmt(sim.dasPago), false, '#6B7280'],
+    ['Base de cálculo', fmt(sim.baseCalculo), true],
+    ['Imposto estimado', fmt(sim.impostoDue), true, sim.impostoDue > 0 ? '#DC2626' : '#16A34A'],
+    ['Alíquota efetiva', `${sim.aliquotaEfetiva.toFixed(2)}%`, false, '#6B7280'],
+  ]
+
+  const tableRows = rows.map(([label, value, bold, color]) =>
+    `<tr style="${bold ? 'background:#EDE9FE;' : ''}">
+      <td style="font-weight:${bold ? '700' : 'normal'}">${label}</td>
+      <td style="text-align:right; font-weight:${bold ? '700' : 'normal'}; color:${color ?? '#111'}">${value}</td>
+    </tr>`
+  ).join('')
+
+  const isentoBox = sim.impostoDue === 0
+    ? `<div style="background:#F0FDF4; border-radius:6px; padding:12px; margin-top:16px; text-align:center;">
+        <p style="color:#16A34A; font-weight:700; font-size:14px;">✅ Isento de IRPF</p>
+        <p style="color:#166534; font-size:12px; margin-top:4px;">Com base nos dados informados.</p>
+       </div>`
+    : ''
+
+  const body = `
+    <div style="background:#FFFBEB; border-radius:6px; padding:10px 14px; margin-bottom:16px; border-left:3px solid #D97706;">
+      <p style="font-size:11px; color:#92400E;">⚠️ Estimativa de IRPF para MEI — lucro presumido. A declaração real pode variar. Consulte um contador.</p>
+    </div>
+    <table>
+      <thead><tr><th>Item</th><th style="text-align:right">Valor</th></tr></thead>
+      <tbody>
+        <tr><td>Receita bruta</td><td style="text-align:right; font-weight:700">${fmt(sim.receitaBruta)}</td></tr>
+        ${tableRows}
+      </tbody>
+    </table>
+    ${isentoBox}`
+
+  await share(buildHtml('Simulação IRPF', `Gerado em ${new Date().toLocaleDateString('pt-BR')}`, body), 'Simulacao-IRPF.pdf')
 }

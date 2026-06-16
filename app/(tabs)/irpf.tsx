@@ -1,19 +1,27 @@
 import { useState, useCallback } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, SafeAreaView } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useFocusEffect } from 'expo-router'
 import * as ScreenCapture from 'expo-screen-capture'
-import { ATIVIDADES, AtividadeId, simularIRPF } from '../../lib/irpf'
+import { Ionicons } from '@expo/vector-icons'
+import { ATIVIDADES, AtividadeId, simularIRPFAno, simularMEIvsME } from '../../lib/irpf'
 import { getConfig } from '../../lib/db'
+import { exportIRPFPDF } from '../../lib/pdf'
 import { COLORS, FONTS, RADIUS } from '../../constants/theme'
 
 function fmt(val: number) {
   return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 }
 
+const ANOS = [2024, 2025]
+
 export default function IRPFScreen() {
+  const insets = useSafeAreaInsets()
   const [atividade, setAtividade] = useState<AtividadeId>('comercio')
   const [receita, setReceita] = useState('')
   const [das, setDas] = useState('')
+  const [ano, setAno] = useState(new Date().getFullYear() >= 2025 ? 2025 : 2024)
+  const [showMEIvsME, setShowMEIvsME] = useState(false)
 
   useFocusEffect(useCallback(() => {
     ScreenCapture.preventScreenCaptureAsync()
@@ -22,17 +30,38 @@ export default function IRPFScreen() {
     return () => { ScreenCapture.allowScreenCaptureAsync() }
   }, []))
 
-  const sim = receita
-    ? simularIRPF(parseFloat(receita.replace(',', '.')) || 0, parseFloat(das.replace(',', '.')) || 0, atividade)
-    : null
-
+  const receitaNum = parseFloat(receita.replace(',', '.')) || 0
+  const dasNum = parseFloat(das.replace(',', '.')) || 0
+  const sim = receita ? simularIRPFAno(receitaNum, dasNum, atividade, ano) : null
+  const comp = receita && showMEIvsME ? simularMEIvsME(receitaNum, atividade) : null
   const atividadeAtual = ATIVIDADES.find(a => a.id === atividade)!
 
+  async function handleExportPDF() {
+    if (!sim) return
+    try { await exportIRPFPDF(sim, atividadeAtual.label, atividadeAtual.pct) } catch {}
+  }
+
   return (
-    <SafeAreaView style={s.safe}>
-      <ScrollView contentContainerStyle={s.container} keyboardShouldPersistTaps="handled">
-        <Text style={s.title}>Simulador IRPF</Text>
-        <Text style={s.sub}>Estimativa de imposto de renda para MEI — lucro presumido. Consulte um contador para a declaração oficial.</Text>
+    <SafeAreaView style={[s.safe, { paddingTop: insets.top }]}>
+      <ScrollView contentContainerStyle={[s.container, { paddingBottom: insets.bottom + 40 }]} keyboardShouldPersistTaps="handled">
+        <View style={s.headerRow}>
+          <Text style={s.title}>Simulador IRPF</Text>
+          {sim && (
+            <TouchableOpacity onPress={handleExportPDF} style={s.pdfBtn}>
+              <Ionicons name="download-outline" size={18} color={COLORS.primary} />
+            </TouchableOpacity>
+          )}
+        </View>
+        <Text style={s.sub}>Estimativa para MEI — lucro presumido. Consulte um contador para a declaração oficial.</Text>
+
+        <Text style={s.sectionTitle}>Ano-calendário</Text>
+        <View style={s.anoRow}>
+          {ANOS.map(a => (
+            <TouchableOpacity key={a} style={[s.anoBtn, ano === a && s.anoBtnActive]} onPress={() => setAno(a)}>
+              <Text style={[s.anoText, ano === a && s.anoTextActive]}>{a}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
 
         <Text style={s.sectionTitle}>Atividade principal</Text>
         {ATIVIDADES.map(a => (
@@ -50,7 +79,7 @@ export default function IRPFScreen() {
 
         {sim && (
           <View style={s.result}>
-            <Text style={s.resultTitle}>Resultado</Text>
+            <Text style={s.resultTitle}>Resultado {ano}</Text>
             <Row label="Receita bruta" value={fmt(sim.receitaBruta)} />
             <Row label={`Rendimento isento (${((1 - atividadeAtual.pct) * 100).toFixed(0)}%)`} value={fmt(sim.rendimentoIsento)} color={COLORS.success} />
             <Row label={`Rendimento tributável (${(atividadeAtual.pct * 100).toFixed(0)}%)`} value={fmt(sim.rendimentoTributavel)} />
@@ -67,9 +96,40 @@ export default function IRPFScreen() {
           </View>
         )}
 
+        <TouchableOpacity style={s.toggleBtn} onPress={() => setShowMEIvsME(v => !v)}>
+          <Text style={s.toggleBtnText}>⚖️ Comparar MEI vs Simples Nacional</Text>
+          <Ionicons name={showMEIvsME ? 'chevron-up' : 'chevron-down'} size={16} color={COLORS.primary} />
+        </TouchableOpacity>
+
+        {comp && showMEIvsME && (
+          <View style={s.result}>
+            <Text style={s.resultTitle}>MEI vs Simples Nacional</Text>
+            <Row label="Receita anual" value={fmt(comp.receitaBruta)} />
+            <View style={s.divider} />
+            <Row label={`MEI — DAS fixo anual`} value={fmt(comp.custoMEI)} color={COLORS.success} bold />
+            <Row label="Alíquota efetiva MEI" value={`${comp.aliquotaMEIPct.toFixed(2)}%`} color={COLORS.textMuted} />
+            <View style={s.divider} />
+            <Row label={`Simples Nacional (~${comp.aliquotaMEPct.toFixed(0)}%)`} value={fmt(comp.custoME)} color={COLORS.danger} bold />
+            <View style={s.divider} />
+            <Row label="Economia com MEI" value={fmt(comp.economiaMEI)} bold color={comp.economiaMEI >= 0 ? COLORS.success : COLORS.danger} />
+            <View style={[s.isentoBox, { backgroundColor: COLORS.primaryLight, marginTop: 10 }]}>
+              <Text style={[s.isentoText, { color: COLORS.primary }]}>
+                {comp.economiaMEI > 0
+                  ? `✅ MEI economiza ${fmt(comp.economiaMEI)}/ano em impostos.`
+                  : '⚠️ Simples Nacional pode ser vantajoso. Consulte um contador.'}
+              </Text>
+            </View>
+            {comp.receitaBruta > 81000 && (
+              <View style={[s.isentoBox, { backgroundColor: COLORS.warningLight, marginTop: 8 }]}>
+                <Text style={[s.isentoText, { color: COLORS.warning }]}>⚠️ Receita acima do limite MEI (R$ 81.000/ano). Migração para ME obrigatória.</Text>
+              </View>
+            )}
+          </View>
+        )}
+
         <View style={s.disclaimer}>
           <Text style={s.disclaimerText}>
-            ⚠️ Estimativa baseada na tabela progressiva IRPF 2024. A declaração real pode variar conforme outras rendas e deduções.
+            ⚠️ Estimativa baseada na tabela progressiva IRPF {ano}. Alíquotas Simples Nacional são aproximadas (Anexo I/III). Consulte um contador.
           </Text>
         </View>
       </ScrollView>
@@ -88,10 +148,17 @@ function Row({ label, value, bold, color }: { label: string; value: string; bold
 
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: COLORS.bg },
-  container: { padding: 16, paddingTop: 20, paddingBottom: 32 },
-  title: { fontSize: FONTS.xl, fontWeight: '700', color: COLORS.text, marginBottom: 6 },
+  container: { padding: 16, paddingTop: 20 },
+  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 },
+  title: { fontSize: FONTS.xl, fontWeight: '700', color: COLORS.text },
+  pdfBtn: { padding: 8, borderWidth: 1, borderColor: COLORS.primary, borderRadius: RADIUS.md },
   sub: { fontSize: FONTS.sm, color: COLORS.textMuted, lineHeight: 18, marginBottom: 20 },
   sectionTitle: { fontSize: FONTS.base, fontWeight: '700', color: COLORS.text, marginBottom: 10 },
+  anoRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
+  anoBtn: { flex: 1, paddingVertical: 8, borderRadius: RADIUS.md, borderWidth: 1, borderColor: COLORS.border, alignItems: 'center', backgroundColor: COLORS.card },
+  anoBtnActive: { borderColor: COLORS.primary, backgroundColor: COLORS.primaryLight },
+  anoText: { fontSize: FONTS.base, color: COLORS.textMuted, fontWeight: '600' },
+  anoTextActive: { color: COLORS.primary, fontWeight: '700' },
   ativBtn: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: COLORS.card, borderRadius: RADIUS.md, padding: 12, borderWidth: 1, borderColor: COLORS.border, marginBottom: 8 },
   ativBtnActive: { borderColor: COLORS.primary, backgroundColor: COLORS.primaryLight },
   ativText: { fontSize: FONTS.base, color: COLORS.textMuted },
@@ -100,11 +167,13 @@ const s = StyleSheet.create({
   ativPctActive: { color: COLORS.primary, fontWeight: '700' },
   label: { fontSize: FONTS.sm, fontWeight: '600', color: COLORS.text, marginBottom: 4, marginTop: 8 },
   input: { borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.md, paddingHorizontal: 14, paddingVertical: 11, fontSize: FONTS.base, color: COLORS.text, backgroundColor: COLORS.card, marginBottom: 4 },
-  result: { backgroundColor: COLORS.card, borderRadius: RADIUS.lg, padding: 16, marginTop: 20, marginBottom: 16 },
+  result: { backgroundColor: COLORS.card, borderRadius: RADIUS.lg, padding: 16, marginTop: 16, marginBottom: 12 },
   resultTitle: { fontSize: FONTS.base, fontWeight: '700', color: COLORS.text, marginBottom: 12 },
   divider: { height: 1, backgroundColor: COLORS.border, marginVertical: 8 },
   isentoBox: { backgroundColor: COLORS.successLight, borderRadius: RADIUS.md, padding: 10, marginTop: 10 },
   isentoText: { fontSize: FONTS.sm, color: COLORS.success, fontWeight: '600' },
-  disclaimer: { backgroundColor: COLORS.warningLight, borderRadius: RADIUS.md, padding: 12, marginBottom: 24 },
+  toggleBtn: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: COLORS.card, borderRadius: RADIUS.md, padding: 14, marginTop: 4, marginBottom: 4, borderWidth: 1, borderColor: COLORS.border },
+  toggleBtnText: { fontSize: FONTS.sm, color: COLORS.primary, fontWeight: '600' },
+  disclaimer: { backgroundColor: COLORS.warningLight, borderRadius: RADIUS.md, padding: 12, marginBottom: 8, marginTop: 8 },
   disclaimerText: { fontSize: FONTS.sm, color: COLORS.warning, lineHeight: 18 },
 })

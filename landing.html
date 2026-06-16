@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MEI Control Pro — Controle financeiro do MEI no celular</title>
+  <meta name="description" content="App Android para MEI controlar DAS, finanças e IRPF offline. Pagamento único, sem mensalidade." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    html{scroll-behavior:smooth;font-size:16px}
+
+    :root{
+      --bg:       #09090C;
+      --surface:  #0F0F15;
+      --s2:       #161622;
+      --s3:       #1E1E2C;
+
+      --bd:    rgba(255,255,255,0.055);
+      --bd-md: rgba(255,255,255,0.09);
+      --bd-lg: rgba(255,255,255,0.16);
+
+      /* Roxo — accent principal (identidade Sismei) */
+      --g:     #7C3AED;
+      --g-hv:  #8B5CF6;
+      --g-dim: rgba(124,58,237,0.11);
+      --g-glow:rgba(124,58,237,0.28);
+
+      /* Âmbar */
+      --a:     #E8860A;
+      --a-lt:  #F5A623;
+      --a-dim: rgba(232,134,10,0.11);
+
+      /* Teal */
+      --tl:    #06B6D4;
+      --tl-dim:rgba(6,182,212,0.11);
+
+      --tx:    #EEEEF5;
+      --tx-md: #B0B0C8;
+      --mt:    #42425A;
+      --mt-lt: #7878A0;
+
+      --sans:  'DM Sans', system-ui, sans-serif;
+      --serif: 'Instrument Serif', Georgia, serif;
+      --mono:  'DM Mono', 'Courier New', monospace;
+
+      --hh:    58px;
+      --hbg:   rgba(9,9,12,0.88);
+      --fbg:   #060608;
+      --r:     14px;
+    }
+
+    html.light{
+      --bg:      #F7F7F2;
+      --surface: #FFFFFF;
+      --s2:      #F0F0EA;
+      --s3:      #E6E6E0;
+      --bd:    rgba(0,0,0,0.055);
+      --bd-md: rgba(0,0,0,0.09);
+      --bd-lg: rgba(0,0,0,0.16);
+      --g:     #5B21B6;
+      --g-hv:  #6D28D9;
+      --g-dim: rgba(91,33,182,0.09);
+      --g-glow:rgba(91,33,182,0.18);
+      --a:     #B85E00;
+      --a-lt:  #D97706;
+      --a-dim: rgba(184,94,0,0.09);
+      --tl:    #0369A1;
+      --tl-dim:rgba(3,105,161,0.09);
+      --tx:    #0A0A12;
+      --tx-md: #2A2A42;
+      --mt:    #C8C8D8;
+      --mt-lt: #5A5A7A;
+      --hbg:   rgba(247,247,242,0.92);
+      --fbg:   #EBEBEA;
+    }
+
+    body{
+      font-family:var(--sans);
+      background:var(--bg);
+      color:var(--tx);
+      overflow-x:hidden;
+      -webkit-font-smoothing:antialiased;
+      transition:background .3s,color .3s;
+    }
+
+    a{color:inherit;text-decoration:none}
+    img{display:block;max-width:100%}
+    button{font-family:inherit;cursor:pointer}
+
+    .w{max-width:1160px;margin:0 auto;padding:0 28px}
+
+    body::after{
+      content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
+      opacity:.025;
+      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    /* ── TICKER ── */
+    .ticker{
+      overflow:hidden;
+      background:var(--g-dim);
+      border-bottom:1px solid rgba(124,58,237,.13);
+      padding:8px 0;
+    }
+    html.light .ticker{background:rgba(91,33,182,.07);border-bottom-color:rgba(91,33,182,.1)}
+
+    .ticker-track{
+      display:flex;width:max-content;
+      animation:ticker-scroll 32s linear infinite;
+    }
+    @keyframes ticker-scroll{to{transform:translateX(-50%)}}
+
+    .tick-item{
+      display:flex;align-items:center;gap:7px;
+      padding:0 40px;
+      font-size:.8125rem;font-weight:500;
+      white-space:nowrap;flex-shrink:0;
+    }
+    .tick-check{color:var(--g);font-size:11px;flex-shrink:0}
+    .tick-name{color:var(--g-hv);font-weight:600}
+    html.light .tick-name{color:var(--g)}
+    .tick-rest{color:var(--mt-lt)}
+    .tick-sep{color:var(--mt);margin:0 4px;font-size:.65rem}
+
+    /* ── HEADER ── */
+    header{
+      position:sticky;top:0;z-index:100;
+      height:var(--hh);
+      background:var(--hbg);
+      backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+      border-bottom:1px solid var(--bd);
+      transition:background .3s,border-color .3s;
+    }
+
+    .hdr{
+      height:100%;max-width:1160px;margin:0 auto;padding:0 28px;
+      display:flex;align-items:center;gap:8px;
+    }
+
+    .hdr-logo{
+      flex-shrink:0;margin-right:8px;
+      font-family:var(--sans);font-size:1.05rem;font-weight:800;
+      letter-spacing:-.02em;display:flex;align-items:center;gap:8px;
+    }
+    .hdr-logo-dot{
+      width:8px;height:8px;background:var(--g);border-radius:50%;
+      animation:live-pulse 2.4s ease-in-out infinite;
+    }
+    @keyframes live-pulse{
+      0%,100%{box-shadow:0 0 0 0 rgba(124,58,237,.45)}
+      60%{box-shadow:0 0 0 6px rgba(124,58,237,0)}
+    }
+
+    .hdr-nav{display:flex;align-items:center;gap:2px}
+    .hdr-nav a{
+      padding:6px 13px;border-radius:8px;
+      font-size:.875rem;font-weight:500;color:var(--mt-lt);
+      transition:color .2s,background .2s;
+    }
+    .hdr-nav a:hover{color:var(--tx);background:var(--bd)}
+
+    .hdr-r{display:flex;align-items:center;gap:8px;margin-left:auto}
+
+    .hdr-cta{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:8px 18px;background:var(--g);color:#fff;
+      font-size:.875rem;font-weight:700;border-radius:8px;
+      transition:background .2s,transform .15s;
+    }
+    .hdr-cta:hover{background:var(--g-hv);transform:translateY(-1px)}
+
+    .theme-btn{
+      width:36px;height:36px;
+      display:flex;align-items:center;justify-content:center;
+      border:1px solid var(--bd-md);background:transparent;
+      border-radius:8px;color:var(--mt-lt);
+      transition:all .2s;
+    }
+    .theme-btn:hover{background:var(--bd);color:var(--tx)}
+    html:not(.light) .i-sun{display:none}
+    html.light .i-moon{display:none}
+
+    .mob-btn{display:none;background:none;border:none;color:var(--tx);padding:4px;}
+
+    /* ── MOBILE NAV ── */
+    .mob-nav{
+      display:none;position:fixed;inset:0;z-index:300;
+      background:var(--bg);flex-direction:column;
+      align-items:center;justify-content:center;gap:10px;
+    }
+    .mob-nav.open{display:flex}
+    .mob-nav a{font-size:1.875rem;font-weight:800;color:var(--tx);padding:6px;transition:color .2s}
+    .mob-nav a:hover{color:var(--g)}
+    .mob-close{position:absolute;top:22px;right:24px;background:none;border:none;font-size:22px;color:var(--mt-lt);}
+
+    /* ── HERO ── */
+    .hero{
+      max-width:1160px;margin:0 auto;
+      padding:88px 28px 80px;
+      display:grid;grid-template-columns:1fr 360px;
+      gap:80px;align-items:center;
+      min-height:calc(100vh - var(--hh) - 37px);
+    }
+
+    .hero-eyebrow{display:flex;align-items:center;gap:10px;margin-bottom:28px}
+
+    .ey-tag{
+      font-family:var(--mono);font-size:.6875rem;font-weight:500;
+      letter-spacing:.1em;text-transform:uppercase;
+      color:var(--g);background:var(--g-dim);
+      border:1px solid rgba(124,58,237,.2);
+      padding:4px 10px;border-radius:4px;
+    }
+
+    .ey-live{display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--mt-lt)}
+    .live-dot{width:7px;height:7px;background:var(--g);border-radius:50%;animation:live-pulse 2.4s ease-in-out infinite;}
+
+    .hero-h1{
+      font-family:var(--sans);font-weight:800;
+      font-size:clamp(2.75rem,5.2vw,4.375rem);
+      letter-spacing:-.04em;line-height:.97;
+      margin-bottom:26px;
+    }
+    .h1-muted{color:var(--mt-lt);font-weight:300;display:block}
+    .h1-serif{
+      font-family:var(--serif);font-style:italic;font-weight:400;
+      letter-spacing:-.02em;color:var(--g);
+      font-size:.85em;
+    }
+
+    .hero-body{
+      font-size:clamp(.9375rem,1.5vw,1.05rem);
+      color:var(--mt-lt);line-height:1.78;
+      max-width:450px;margin-bottom:40px;
+    }
+
+    .hero-ctas{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+
+    .btn-g{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:13px 26px;background:var(--g);color:#fff;
+      font-weight:700;font-size:.9375rem;border-radius:10px;
+      border:none;transition:all .2s;
+      box-shadow:0 4px 24px var(--g-glow);
+    }
+    .btn-g:hover{background:var(--g-hv);transform:translateY(-2px);box-shadow:0 8px 32px var(--g-glow)}
+
+    .btn-bd{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:12px 22px;background:transparent;
+      border:1px solid var(--bd-md);color:var(--mt-lt);
+      font-weight:500;font-size:.9375rem;border-radius:10px;
+      transition:all .2s;
+    }
+    .btn-bd:hover{border-color:var(--bd-lg);color:var(--tx);background:var(--surface)}
+
+    .hero-trust{
+      margin-top:30px;padding-top:24px;
+      border-top:1px solid var(--bd);
+      display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+    }
+
+    .trust-txt{font-size:.8125rem;color:var(--mt-lt)}
+    .trust-txt b{color:var(--tx);font-weight:600}
+
+    /* ── PHONE MOCKUP ── */
+    .hero-r{
+      display:flex;justify-content:center;align-items:center;
+      position:relative;
+    }
+
+    .hero-r::before{
+      content:'';position:absolute;inset:-40px;
+      background-image:
+        linear-gradient(rgba(124,58,237,.05) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(124,58,237,.05) 1px,transparent 1px);
+      background-size:30px 30px;
+      mask-image:radial-gradient(ellipse 65% 65% at 50% 50%,black 45%,transparent 100%);
+      -webkit-mask-image:radial-gradient(ellipse 65% 65% at 50% 50%,black 45%,transparent 100%);
+      pointer-events:none;
+    }
+
+    .phone{position:relative;width:246px;z-index:2}
+
+    .phone-shell{
+      background:#090910;
+      border:1.5px solid rgba(255,255,255,.12);
+      border-radius:40px;padding:10px;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,.03),
+        0 36px 80px rgba(0,0,0,.72),
+        0 0 60px rgba(124,58,237,.08);
+    }
+
+    .phone-notch{
+      width:68px;height:20px;
+      background:#090910;border:1.5px solid rgba(255,255,255,.07);
+      border-radius:12px;margin:0 auto 10px;
+      display:flex;align-items:center;justify-content:center;gap:5px;
+    }
+    .p-cam{width:7px;height:7px;background:#1A1A28;border-radius:50%}
+
+    .phone-screen{
+      background:#0C0C18;border-radius:30px;
+      height:478px;overflow:hidden;
+      display:flex;flex-direction:column;
+    }
+
+    .papp-hdr{
+      background:#10101E;padding:14px 14px 10px;
+      border-bottom:1px solid rgba(255,255,255,.04);flex-shrink:0;
+    }
+    .papp-hdr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+    .papp-brand{font-family:var(--sans);font-size:.625rem;font-weight:800;color:var(--g);letter-spacing:.08em;text-transform:uppercase;}
+    .papp-date{font-family:var(--mono);font-size:.5625rem;color:rgba(255,255,255,.28)}
+    .papp-rev{display:flex;align-items:baseline;gap:4px}
+    .papp-rev-lbl{font-size:.5rem;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.28)}
+    .papp-rev-val{font-family:var(--mono);font-size:1rem;font-weight:500;color:var(--g)}
+
+    .papp-body{flex:1;padding:10px;display:flex;flex-direction:column;gap:5px;overflow:hidden;}
+    .papp-sec{font-family:var(--mono);font-size:.5rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.22);padding:0 2px;margin-top:4px;}
+
+    .kpi-row{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:2px;}
+    .kpi-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);border-radius:8px;padding:7px 9px;}
+    .kpi-lbl{font-size:.46rem;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.28);margin-bottom:2px;}
+    .kpi-val{font-family:var(--mono);font-size:.75rem;font-weight:500;color:rgba(255,255,255,.82);}
+    .kpi-val.purple{color:#A78BFA}
+    .kpi-val.green{color:#4ADE80}
+    .kpi-val.amber{color:#F59E0B}
+
+    .gauge-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);border-radius:8px;padding:7px 9px;}
+    .gauge-lbl{font-size:.46rem;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.28);margin-bottom:5px;}
+    .gauge-bar-bg{height:5px;background:rgba(255,255,255,.07);border-radius:100px;overflow:hidden;margin-bottom:4px;}
+    .gauge-bar-fill{height:100%;width:34%;background:linear-gradient(90deg,#7C3AED,#A78BFA);border-radius:100px;}
+    .gauge-info{display:flex;justify-content:space-between;}
+    .gauge-info span{font-size:.42rem;color:rgba(255,255,255,.3);}
+    .gauge-info strong{font-size:.42rem;color:#A78BFA;}
+
+    .mini-chart{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);border-radius:8px;padding:7px 9px;flex:1;}
+    .mc-lbl{font-size:.46rem;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.28);margin-bottom:6px;}
+    .mc-bars{display:flex;align-items:flex-end;gap:3px;height:32px;}
+    .mc-bar{flex:1;background:rgba(124,58,237,.18);border-radius:2px 2px 0 0;}
+    .mc-bar.active{background:#7C3AED;}
+
+    .notif{
+      position:absolute;
+      background:var(--surface);border:1px solid var(--bd-md);
+      border-radius:12px;padding:10px 14px;
+      display:flex;align-items:center;gap:10px;
+      box-shadow:0 8px 28px rgba(0,0,0,.4);
+      z-index:10;width:196px;
+    }
+    .notif-1{top:36px;right:-60px;animation:nfloat1 .5s .4s cubic-bezier(.34,1.56,.64,1) both;}
+    .notif-2{bottom:56px;left:-72px;border-color:rgba(124,58,237,.2);animation:nfloat2 .5s .9s cubic-bezier(.34,1.56,.64,1) both;}
+    @keyframes nfloat1{from{opacity:0;transform:translateX(14px) scale(.9)}to{opacity:1;transform:none}}
+    @keyframes nfloat2{from{opacity:0;transform:translateX(-14px) scale(.9)}to{opacity:1;transform:none}}
+
+    .n-ico{width:30px;height:30px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:15px;}
+    .n-title{font-size:.7rem;font-weight:700}
+    .n-sub{font-size:.625rem;color:var(--mt-lt);margin-top:1px}
+
+    /* ── MARQUEE STRIP ── */
+    .biz-strip{border-top:1px solid var(--bd);border-bottom:1px solid var(--bd);padding:16px 0;overflow:hidden;}
+    .biz-track{display:flex;width:max-content;animation:ticker-scroll 26s linear infinite;}
+    .biz-item{display:flex;align-items:center;gap:8px;padding:0 32px;font-size:.875rem;font-weight:600;color:var(--mt);white-space:nowrap;flex-shrink:0;}
+
+    /* ── PROOF NUMBERS ── */
+    .proof{padding:100px 0}
+    .proof-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--bd);border:1px solid var(--bd);border-radius:20px;overflow:hidden;}
+    .proof-cell{background:var(--surface);padding:44px 36px}
+    .pc-num{font-family:var(--sans);font-size:clamp(2.75rem,5vw,4.25rem);font-weight:800;letter-spacing:-.04em;line-height:1;margin-bottom:14px;}
+    .c-g{color:var(--g)}
+    .c-a{color:var(--a-lt)}
+    .c-t{color:var(--tl)}
+    .pc-txt{font-size:.9375rem;color:var(--mt-lt);line-height:1.68}
+    .pc-txt b{color:var(--tx);font-weight:600}
+
+    /* ── ROI CALLOUT ── */
+    .roi{padding:0 0 80px}
+    .roi-box{background:var(--surface);border:1px solid var(--bd);border-radius:20px;overflow:hidden;display:grid;grid-template-columns:1fr 300px;}
+    .roi-l{padding:48px;border-right:1px solid var(--bd)}
+    .roi-tag{font-family:var(--mono);font-size:.6875rem;letter-spacing:.1em;text-transform:uppercase;color:var(--a-lt);background:var(--a-dim);border:1px solid rgba(245,166,35,.18);padding:4px 10px;border-radius:4px;display:inline-block;margin-bottom:20px;}
+    .roi-h{font-size:1.625rem;font-weight:800;letter-spacing:-.025em;line-height:1.25;margin-bottom:14px;}
+    .roi-body{font-size:.9375rem;color:var(--mt-lt);line-height:1.72;margin-bottom:28px;max-width:420px;}
+    .roi-answer{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+    .roi-ans-lbl{font-size:.875rem;color:var(--mt-lt)}
+    .roi-ans-val{font-family:var(--mono);font-size:2.25rem;font-weight:500;color:var(--g)}
+    .roi-r{padding:36px 32px;background:var(--s2);display:flex;flex-direction:column;}
+    .roi-calc-title{font-family:var(--mono);font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--mt);margin-bottom:20px;}
+    .roi-line{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 0;border-bottom:1px solid var(--bd);font-size:.85rem;}
+    .roi-line:last-of-type{border-bottom:none}
+    .roi-line-l{color:var(--mt-lt)}
+    .roi-line-v{font-family:var(--mono);font-weight:500;color:var(--tx)}
+    .roi-line-v.neg{color:var(--a-lt)}
+    .roi-result{margin-top:20px;padding:16px;background:var(--g-dim);border:1px solid rgba(124,58,237,.18);border-radius:10px;}
+    .roi-r-lbl{font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--g);margin-bottom:6px;}
+    .roi-r-val{font-family:var(--mono);font-size:1.875rem;font-weight:500;color:var(--g);line-height:1}
+    .roi-r-sub{font-size:.75rem;color:var(--mt-lt);margin-top:5px}
+
+    /* ── FEATURES TIMELINE ── */
+    .features{background:var(--surface);border-top:1px solid var(--bd);border-bottom:1px solid var(--bd);padding:100px 0;}
+    .features-hdr{max-width:1160px;margin:0 auto 80px;padding:0 28px;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:end;}
+
+    .sec-lbl{font-family:var(--mono);font-size:.6875rem;letter-spacing:.12em;text-transform:uppercase;color:var(--g);display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+    .sec-lbl::before{content:'';width:20px;height:1.5px;background:var(--g);flex-shrink:0}
+
+    .sec-title{font-family:var(--sans);font-size:clamp(1.875rem,3.2vw,2.75rem);font-weight:800;letter-spacing:-.03em;line-height:1.08;}
+    .sec-sub{font-size:1rem;color:var(--mt-lt);line-height:1.72}
+
+    .tl-row{display:grid;grid-template-columns:180px 1fr;border-top:1px solid var(--bd);max-width:1160px;margin:0 auto;padding:0 28px;}
+    .tl-row:last-child{border-bottom:1px solid var(--bd)}
+    .tl-l{padding:52px 32px 52px 0;border-right:1px solid var(--bd);display:flex;flex-direction:column;gap:8px;position:sticky;top:var(--hh);align-self:flex-start;}
+    .tl-icon{font-size:2rem;margin-bottom:4px;}
+    .tl-hour{font-family:var(--mono);font-size:.75rem;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--mt-lt);}
+    .tl-r{padding:52px 0 52px 52px;display:grid;grid-template-columns:1fr 320px;gap:52px;align-items:start;}
+
+    .tl-feat-tag{display:inline-flex;align-items:center;gap:5px;font-size:.6875rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:4px;margin-bottom:14px;}
+    .ft-g{background:var(--g-dim);color:var(--g)}
+    .ft-a{background:var(--a-dim);color:var(--a-lt)}
+    .ft-t{background:var(--tl-dim);color:var(--tl)}
+
+    .tl-title{font-size:clamp(1.25rem,2vw,1.5rem);font-weight:800;letter-spacing:-.025em;margin-bottom:12px;line-height:1.2;}
+    .tl-desc{font-size:.9375rem;color:var(--mt-lt);line-height:1.75;margin-bottom:20px}
+    .tl-list{list-style:none;display:flex;flex-direction:column;gap:7px}
+    .tl-list li{display:flex;align-items:flex-start;gap:9px;font-size:.875rem;color:var(--mt-lt)}
+    .tl-list li .arr{color:var(--g);font-weight:700;font-size:.75rem;flex-shrink:0;margin-top:2px}
+
+    .tl-vis{background:var(--s2);border:1px solid var(--bd);border-radius:14px;padding:18px;overflow:hidden;}
+    .vis-lbl{font-family:var(--mono);font-size:.575rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mt);margin-bottom:12px;}
+
+    /* vis: DAS rows */
+    .das-rows{display:flex;flex-direction:column;gap:5px}
+    .das-row{display:flex;align-items:center;gap:7px;padding:7px 9px;background:var(--s3);border-radius:7px;font-size:.65rem}
+    .das-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+    .das-month{font-family:var(--mono);color:var(--mt-lt);min-width:36px}
+    .das-n{font-weight:700;flex:1}
+    .das-s{font-size:.575rem;font-family:var(--mono)}
+
+    /* vis: fin chart */
+    .fin-sum{text-align:center;margin-bottom:14px}
+    .fin-lbl{font-family:var(--mono);font-size:.52rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mt);margin-bottom:3px}
+    .fin-val{font-family:var(--mono);font-size:1.5rem;font-weight:500;color:var(--g)}
+    .fin-chart{display:flex;align-items:flex-end;gap:4px;height:54px}
+    .fb{flex:1;border-radius:4px 4px 0 0;background:var(--g-dim)}
+    .fb.hi{background:var(--g)}
+    .fb.md{background:rgba(124,58,237,.38)}
+
+    /* vis: irpf */
+    .irpf-rows{display:flex;flex-direction:column;gap:6px}
+    .irpf-row{display:flex;justify-content:space-between;align-items:center;padding:7px 9px;background:var(--s3);border-radius:7px;font-size:.65rem}
+    .irpf-row-l{color:var(--mt-lt)}
+    .irpf-row-v{font-family:var(--mono);font-weight:500;color:var(--tx)}
+    .irpf-result{margin-top:8px;padding:10px;background:var(--g-dim);border:1px solid rgba(124,58,237,.2);border-radius:8px;text-align:center}
+    .irpf-result-lbl{font-family:var(--mono);font-size:.52rem;letter-spacing:.08em;text-transform:uppercase;color:var(--g);margin-bottom:3px}
+    .irpf-result-v{font-family:var(--mono);font-size:1.1rem;font-weight:500;color:var(--g)}
+
+    /* ── HOW IT WORKS ── */
+    .how{padding:100px 0}
+    .how-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:56px;}
+    .how-card{background:var(--surface);border:1px solid var(--bd);border-radius:16px;padding:32px 26px;position:relative;transition:border-color .25s,transform .25s;}
+    .how-card:hover{border-color:var(--bd-md);transform:translateY(-3px)}
+    .how-num{font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--g);background:var(--g-dim);border:1px solid rgba(124,58,237,.18);padding:3px 9px;border-radius:4px;display:inline-block;margin-bottom:20px;}
+    .how-icon{font-size:28px;margin-bottom:14px}
+    .how-card h3{font-size:1.125rem;font-weight:800;letter-spacing:-.02em;margin-bottom:10px}
+    .how-card p{font-size:.9rem;color:var(--mt-lt);line-height:1.68}
+
+    /* ── PRICING ── */
+    .pricing{background:var(--surface);border-top:1px solid var(--bd);padding:100px 0;}
+    .pricing-hdr{margin-bottom:56px}
+    .pricing-center{display:flex;justify-content:center;}
+
+    .pc{
+      background:var(--bg);border:1px solid var(--bd);
+      border-radius:20px;padding:36px 32px;
+      display:flex;flex-direction:column;position:relative;
+      max-width:420px;width:100%;
+      background:linear-gradient(150deg,rgba(124,58,237,.08),rgba(6,182,212,.04));
+      border-color:rgba(124,58,237,.28);
+      box-shadow:0 0 60px rgba(124,58,237,.08);
+    }
+
+    .pop-badge{
+      display:inline-block;
+      font-family:var(--mono);font-size:.575rem;font-weight:500;
+      letter-spacing:.1em;text-transform:uppercase;
+      background:var(--g);color:#fff;
+      padding:4px 14px;border-radius:100px;
+      margin-bottom:20px;align-self:flex-start;
+    }
+
+    .pc-name{font-family:var(--mono);font-size:.6875rem;letter-spacing:.08em;text-transform:uppercase;color:var(--mt);margin-bottom:20px;}
+    .pc-price{display:flex;align-items:baseline;gap:3px;margin-bottom:4px}
+    .pc-curr{font-size:1rem;color:var(--mt-lt);margin-top:6px;font-weight:600}
+    .pc-num2{font-family:var(--sans);font-size:3.5rem;font-weight:800;letter-spacing:-.04em;color:var(--g);}
+    .pc-per{font-size:.8125rem;color:var(--mt);margin-bottom:8px}
+    .pc-once{font-size:.8125rem;color:var(--a-lt);font-weight:600;margin-bottom:24px}
+    .pc-hr{height:1px;background:var(--bd);margin-bottom:20px}
+    .pc-feats{list-style:none;flex:1;display:flex;flex-direction:column;gap:10px;margin-bottom:28px}
+    .pc-feats li{display:flex;align-items:flex-start;gap:7px;font-size:.875rem;color:var(--mt-lt);line-height:1.4;}
+    .pc-feats li::before{
+      content:'';width:14px;height:14px;flex-shrink:0;margin-top:1px;
+      border-radius:50%;background:var(--g-dim);
+      border:1px solid rgba(124,58,237,.25);
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpolyline points='3,7 6,10 11,4' stroke='%237C3AED' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat:no-repeat;background-position:center;
+    }
+
+    .pc-btn{
+      display:flex;align-items:center;justify-content:center;gap:8px;
+      padding:14px;border-radius:10px;
+      font-weight:700;font-size:.9375rem;
+      border:none;transition:all .2s;font-family:inherit;
+      background:var(--g);color:#fff;
+      box-shadow:0 4px 18px var(--g-glow);
+      text-decoration:none;
+    }
+    .pc-btn:hover{background:var(--g-hv);box-shadow:0 6px 24px var(--g-glow);transform:translateY(-1px)}
+
+    /* ── FINAL CTA ── */
+    .final-cta{padding:80px 0 100px}
+    .cta-box{
+      background:var(--surface);border:1px solid var(--bd);
+      border-radius:24px;
+      display:grid;grid-template-columns:1fr 272px;
+      overflow:hidden;position:relative;
+    }
+    .cta-box::before{
+      content:'';position:absolute;top:0;left:0;right:0;height:1.5px;
+      background:linear-gradient(90deg,transparent 5%,var(--g) 40%,var(--tl) 70%,transparent 95%);
+    }
+    .cta-l{padding:64px 60px;border-right:1px solid var(--bd)}
+    .cta-label{font-family:var(--mono);font-size:.6875rem;letter-spacing:.12em;text-transform:uppercase;color:var(--g);display:flex;align-items:center;gap:8px;margin-bottom:20px;}
+    .cta-h2{font-size:clamp(1.875rem,3.5vw,3rem);font-weight:800;letter-spacing:-.035em;line-height:1.05;margin-bottom:16px;}
+    .cta-h2 em{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--g);}
+    .cta-p{font-size:1rem;color:var(--mt-lt);line-height:1.65}
+    .cta-r{padding:64px 40px;background:var(--s2);display:flex;flex-direction:column;justify-content:center;gap:12px;}
+    .cta-perks{list-style:none;margin-top:4px;display:flex;flex-direction:column;gap:8px}
+    .cta-perks li{display:flex;align-items:center;gap:8px;font-size:.8125rem;color:var(--mt-lt)}
+    .pk{color:var(--g);font-size:14px;flex-shrink:0}
+
+    /* ── FOOTER ── */
+    footer{background:var(--fbg);border-top:1px solid var(--bd);padding:48px 28px;transition:background .3s;}
+    .footer-in{max-width:1160px;margin:0 auto;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:24px;}
+    .ft-brand{font-family:var(--sans);font-size:1rem;font-weight:800;display:flex;align-items:center;gap:8px;letter-spacing:-.02em;}
+    .ft-brand-dot{width:7px;height:7px;background:var(--g);border-radius:50%;}
+    .ft-links{display:flex;justify-content:center;gap:24px;flex-wrap:wrap}
+    .ft-links a{font-size:.875rem;color:var(--mt);transition:color .2s}
+    .ft-links a:hover{color:var(--tx-md)}
+    .ft-copy{font-size:.8125rem;color:var(--mt);text-align:right}
+
+    /* ── SCROLL REVEAL ── */
+    .rv{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .6s ease}
+    .rv.in{opacity:1;transform:none}
+
+    /* ── RESPONSIVE ── */
+    @media(max-width:1100px){
+      .hero{grid-template-columns:1fr;min-height:auto;padding:60px 28px}
+      .hero-r{display:none}
+      .proof-grid{grid-template-columns:1fr 1fr}
+      .proof-grid>.proof-cell:last-child{grid-column:span 2}
+      .roi-box{grid-template-columns:1fr}
+      .roi-l{border-right:none;border-bottom:1px solid var(--bd)}
+      .tl-r{grid-template-columns:1fr}
+      .tl-vis{display:none}
+      .cta-box{grid-template-columns:1fr}
+      .cta-r{border-top:1px solid var(--bd)}
+      .footer-in{grid-template-columns:1fr 1fr}
+      .ft-copy{grid-column:span 2;text-align:left}
+    }
+
+    @media(max-width:768px){
+      .hdr-nav{display:none}
+      .mob-btn{display:flex}
+      .hero{padding:48px 20px}
+      .hero-h1{font-size:2.5rem}
+      .proof .w{padding:0 20px}
+      .proof-grid{grid-template-columns:1fr}
+      .proof-grid>.proof-cell:last-child{grid-column:1}
+      .proof-cell{padding:32px 24px}
+      .roi .w{padding:0 20px}
+      .roi-l{padding:32px 24px}
+      .roi-r{padding:28px 24px}
+      .features-hdr{grid-template-columns:1fr;gap:16px;padding:0 20px;margin-bottom:48px}
+      .tl-row{grid-template-columns:80px 1fr;padding:0 20px}
+      .tl-l{padding:36px 18px 36px 0}
+      .tl-r{padding:36px 0 36px 22px}
+      .how .w{padding:0 20px}
+      .how-grid{grid-template-columns:1fr;gap:12px}
+      .pricing .w{padding:0 20px}
+      .final-cta .w{padding:0 20px}
+      .cta-l{padding:40px 28px}
+      .cta-r{padding:32px 28px}
+      .footer-in{grid-template-columns:1fr;gap:16px;text-align:center}
+      .ft-brand{justify-content:center}
+      .ft-links{justify-content:center}
+      .ft-copy{grid-column:auto;text-align:center}
+    }
+
+    @media(max-width:480px){
+      .hero-h1{font-size:2.125rem}
+      .hero-ctas{flex-direction:column}
+      .btn-g,.btn-bd{justify-content:center;width:100%}
+      .sec-title{font-size:1.75rem}
+      .cta-h2{font-size:1.75rem}
+      .cta-l{padding:32px 22px}
+      .cta-r{padding:28px 22px}
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── MOBILE NAV ── -->
+<div class="mob-nav" id="mobNav">
+  <button class="mob-close" onclick="document.getElementById('mobNav').classList.remove('open')" aria-label="Fechar menu">✕</button>
+  <a href="#features" onclick="document.getElementById('mobNav').classList.remove('open')">Funcionalidades</a>
+  <a href="#how"      onclick="document.getElementById('mobNav').classList.remove('open')">Como funciona</a>
+  <a href="#pricing"  onclick="document.getElementById('mobNav').classList.remove('open')">Preço</a>
+  <a href="https://play.google.com/store/apps/details?id=br.com.sismeipro.kit" style="color:var(--g)">Baixar no Play →</a>
+</div>
+
+<!-- ── TICKER ── -->
+<div class="ticker" aria-hidden="true">
+  <div class="ticker-track">
+    <span class="tick-item"><span class="tick-check">✓</span><span class="tick-name">João · Manaus</span><span class="tick-sep">·</span><span class="tick-rest">DAS de junho quitado com 2 dias de antecedência</span></span>
+    <span class="tick-item"><span class="tick-check">✓</span><span class="tick-name">Priscila · Goiânia</span><span class="tick-sep">·</span><span class="tick-rest">fechou o mês com R$ 6.200 — sem planilha</span></span>
+    <span class="tick-item"><span class="tick-check">✓</span><span class="tick-name">Marcos · Fortaleza</span><span class="tick-sep">·</span><span class="tick-rest">simulou IRPF em 30 segundos e ficou isento</span></span>
+    <span class="tick-item"><span class="tick-check">✓</span><span class="tick-name">Luciana · Porto Alegre</span><span class="tick-sep">·</span><span class="tick-rest">relatório DAS em PDF enviado para a contadora</span></span>
+    <span class="tick-item"><span class="tick-check">✓</span><span class="tick-name">Rafael · Recife</span><span class="tick-sep">·</span><span class="tick-rest">limite anual monitorado — 34% usado em junho</span></span>
+    <span class="tick-item"><span class="tick-check">✓</span><span class="tick-name">Camila · BH</span><span class="tick-sep">·</span><span class="tick-rest">ativou o app offline no avião sem perder nenhum dado</span></span>
+    <span class="tick-item"><span class="tick-check">✓</span><span class="tick-name">João · Manaus</span><span class="tick-sep">·</span><span class="tick-rest">DAS de junho quitado com 2 dias de antecedência</span></span>
+    <span class="tick-item"><span class="tick-check">✓</span><span class="tick-name">Priscila · Goiânia</span><span class="tick-sep">·</span><span class="tick-rest">fechou o mês com R$ 6.200 — sem planilha</span></span>
+    <span class="tick-item"><span class="tick-check">✓</span><span class="tick-name">Marcos · Fortaleza</span><span class="tick-sep">·</span><span class="tick-rest">simulou IRPF em 30 segundos e ficou isento</span></span>
+    <span class="tick-item"><span class="tick-check">✓</span><span class="tick-name">Luciana · Porto Alegre</span><span class="tick-sep">·</span><span class="tick-rest">relatório DAS em PDF enviado para a contadora</span></span>
+    <span class="tick-item"><span class="tick-check">✓</span><span class="tick-name">Rafael · Recife</span><span class="tick-sep">·</span><span class="tick-rest">limite anual monitorado — 34% usado em junho</span></span>
+    <span class="tick-item"><span class="tick-check">✓</span><span class="tick-name">Camila · BH</span><span class="tick-sep">·</span><span class="tick-rest">ativou o app offline no avião sem perder nenhum dado</span></span>
+  </div>
+</div>
+
+<!-- ── HEADER ── -->
+<header>
+  <div class="hdr">
+    <a href="#" class="hdr-logo" aria-label="MEI Control Pro">
+      <div class="hdr-logo-dot"></div>
+      MEI Control Pro
+    </a>
+    <nav class="hdr-nav">
+      <a href="#features">Funcionalidades</a>
+      <a href="#how">Como funciona</a>
+      <a href="#pricing">Preço</a>
+    </nav>
+    <div class="hdr-r">
+      <a href="https://play.google.com/store/apps/details?id=br.com.sismeipro.kit" class="hdr-cta" target="_blank" rel="noopener">
+        Baixar grátis
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M3.18 23.76c.37.2.8.2 1.17-.02l11.83-6.86-2.55-2.55-10.45 9.43zM.52 1.56C.2 1.93 0 2.47 0 3.16v17.68c0 .69.2 1.23.53 1.6l.08.08 9.9-9.9v-.23L.6 1.48l-.08.08zM20.5 10.45l-2.38-1.38-2.83 2.83 2.83 2.83 2.4-1.4c.68-.4.68-1.48-.02-1.88zM4.35.24L16.18 7.1l-2.55 2.55L3.18.22C3.55 0 3.98.02 4.35.24z"/></svg>
+      </a>
+      <button class="theme-btn" id="themeToggle" aria-label="Alternar tema">
+        <svg class="i-sun" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="i-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <button class="mob-btn" onclick="document.getElementById('mobNav').classList.add('open')" aria-label="Abrir menu">
+        <svg width="22" height="16" viewBox="0 0 22 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="0" y1="2" x2="22" y2="2"/><line x1="0" y1="8" x2="22" y2="8"/><line x1="0" y1="14" x2="22" y2="14"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- ── HERO ── -->
+<section class="hero" aria-label="Hero">
+  <div class="hero-left">
+    <div class="hero-eyebrow">
+      <span class="ey-tag">DAS · Financeiro · IRPF</span>
+      <span class="ey-live"><span class="live-dot"></span>100% offline</span>
+    </div>
+
+    <h1 class="hero-h1">
+      <span class="h1-muted">Seu MEI</span>
+      organizado<br>no celular.
+      <br><span class="h1-serif">sem planilha, sem mensalidade.</span>
+    </h1>
+
+    <p class="hero-body">
+      Controle DAS, finanças e IRPF direto do Android. Funciona sem internet, seus dados ficam só no seu celular — e você paga uma única vez para ter tudo para sempre.
+    </p>
+
+    <div class="hero-ctas">
+      <a href="https://play.google.com/store/apps/details?id=br.com.sismeipro.kit" class="btn-g" target="_blank" rel="noopener">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3.18 23.76c.37.2.8.2 1.17-.02l11.83-6.86-2.55-2.55-10.45 9.43zM.52 1.56C.2 1.93 0 2.47 0 3.16v17.68c0 .69.2 1.23.53 1.6l.08.08 9.9-9.9v-.23L.6 1.48l-.08.08zM20.5 10.45l-2.38-1.38-2.83 2.83 2.83 2.83 2.4-1.4c.68-.4.68-1.48-.02-1.88zM4.35.24L16.18 7.1l-2.55 2.55L3.18.22C3.55 0 3.98.02 4.35.24z"/></svg>
+        Baixar no Google Play
+      </a>
+      <a href="#features" class="btn-bd">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+        Ver funcionalidades
+      </a>
+    </div>
+
+    <div class="hero-trust">
+      <p class="trust-txt"><b>Pagamento único de R$ 47</b> · sem renovação · sem surpresas no cartão</p>
+    </div>
+  </div>
+
+  <!-- Phone mockup -->
+  <div class="hero-r">
+    <div class="phone">
+      <div class="notif notif-1">
+        <div class="n-ico" style="background:rgba(124,58,237,.14)">📅</div>
+        <div>
+          <div class="n-title">DAS junho</div>
+          <div class="n-sub">Vence em 5 dias · R$ 71,60</div>
+        </div>
+      </div>
+
+      <div class="notif notif-2">
+        <div class="n-ico" style="background:rgba(74,222,128,.14)">💰</div>
+        <div>
+          <div class="n-title">Receita do mês</div>
+          <div class="n-sub" style="color:#4ADE80">R$ 4.200 registrados</div>
+        </div>
+      </div>
+
+      <div class="phone-shell">
+        <div class="phone-notch">
+          <div class="p-cam"></div>
+          <div class="p-cam"></div>
+        </div>
+        <div class="phone-screen">
+
+          <div class="papp-hdr">
+            <div class="papp-hdr-top">
+              <span class="papp-brand">MEI Control Pro</span>
+              <span class="papp-date">Jun 2026</span>
+            </div>
+            <div class="papp-rev">
+              <span class="papp-rev-lbl">Receita·</span>
+              <span class="papp-rev-val">R$ 4.200</span>
+            </div>
+          </div>
+
+          <div class="papp-body">
+            <div class="kpi-row">
+              <div class="kpi-card">
+                <div class="kpi-lbl">Saldo</div>
+                <div class="kpi-val green">R$ 3.1k</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-lbl">DAS</div>
+                <div class="kpi-val amber">5 dias</div>
+              </div>
+            </div>
+
+            <div class="gauge-card">
+              <div class="gauge-lbl">Limite MEI anual · R$ 81k</div>
+              <div class="gauge-bar-bg"><div class="gauge-bar-fill"></div></div>
+              <div class="gauge-info">
+                <span>R$ 27.600 usados</span>
+                <strong>34%</strong>
+              </div>
+            </div>
+
+            <div class="mini-chart">
+              <div class="mc-lbl">Receita — 6 meses</div>
+              <div class="mc-bars">
+                <div class="mc-bar" style="height:45%"></div>
+                <div class="mc-bar" style="height:60%"></div>
+                <div class="mc-bar" style="height:38%"></div>
+                <div class="mc-bar" style="height:72%"></div>
+                <div class="mc-bar" style="height:55%"></div>
+                <div class="mc-bar active" style="height:85%"></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── MARQUEE STRIP ── -->
+<div class="biz-strip" aria-hidden="true">
+  <div class="biz-track">
+    <span class="biz-item">🔧 Eletricistas</span>
+    <span class="biz-item">💇 Cabeleireiros</span>
+    <span class="biz-item">🍔 Food Trucks</span>
+    <span class="biz-item">📸 Fotógrafos</span>
+    <span class="biz-item">🐾 Pet Cuidadores</span>
+    <span class="biz-item">🎵 Músicos</span>
+    <span class="biz-item">🏗️ Pedreiros</span>
+    <span class="biz-item">💆 Massoterapeutas</span>
+    <span class="biz-item">💻 Freelancers</span>
+    <span class="biz-item">🚗 Motoristas</span>
+    <span class="biz-item">🔧 Eletricistas</span>
+    <span class="biz-item">💇 Cabeleireiros</span>
+    <span class="biz-item">🍔 Food Trucks</span>
+    <span class="biz-item">📸 Fotógrafos</span>
+    <span class="biz-item">🐾 Pet Cuidadores</span>
+    <span class="biz-item">🎵 Músicos</span>
+    <span class="biz-item">🏗️ Pedreiros</span>
+    <span class="biz-item">💆 Massoterapeutas</span>
+    <span class="biz-item">💻 Freelancers</span>
+    <span class="biz-item">🚗 Motoristas</span>
+  </div>
+</div>
+
+<!-- ── PROOF NUMBERS ── -->
+<section class="proof rv">
+  <div class="w">
+    <div class="proof-grid">
+      <div class="proof-cell">
+        <div class="pc-num c-g">R$47</div>
+        <p class="pc-txt"><b>pagamento único</b> — sem mensalidade, sem renovação automática, sem cartão de crédito cadastrado. Ativação vitalícia por e-mail.</p>
+      </div>
+      <div class="proof-cell">
+        <div class="pc-num c-t">100%</div>
+        <p class="pc-txt"><b>offline</b> — todos os dados ficam no seu celular. Sem servidor, sem nuvem da empresa, sem risco de vazar suas informações fiscais.</p>
+      </div>
+      <div class="proof-cell">
+        <div class="pc-num c-a">R$81k</div>
+        <p class="pc-txt"><b>limite anual MEI</b> monitorado em tempo real com gauge visual. Você sabe exatamente onde está antes de estourar o teto.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── ROI CALLOUT ── -->
+<section class="roi">
+  <div class="w">
+    <div class="roi-box rv">
+      <div class="roi-l">
+        <span class="roi-tag">Quanto custa não ter controle?</span>
+        <h2 class="roi-h">1 DAS com multa já custa<br>mais que o app inteiro.</h2>
+        <p class="roi-body">
+          DAS atrasado gera multa de 0,33% ao dia + juros Selic. Em 30 dias de atraso, você paga de 10% a 15% a mais. Com alertas automáticos e controle de vencimento no app, isso nunca acontece. Faça a conta:
+        </p>
+        <div class="roi-answer">
+          <span class="roi-ans-lbl">Economia real no primeiro ano:</span>
+          <span class="roi-ans-val">+R$ 200</span>
+        </div>
+      </div>
+
+      <div class="roi-r">
+        <div class="roi-calc-title">— Simulação anual</div>
+        <div class="roi-line">
+          <span class="roi-line-l">DAS médio mensal</span>
+          <span class="roi-line-v">R$ 71,60</span>
+        </div>
+        <div class="roi-line">
+          <span class="roi-line-l">Multa por atraso (30d)</span>
+          <span class="roi-line-v">≈ R$ 10,74</span>
+        </div>
+        <div class="roi-line">
+          <span class="roi-line-l">Multas em 12 meses (2x)</span>
+          <span class="roi-line-v" style="color:var(--a-lt)">R$ 247</span>
+        </div>
+        <div class="roi-line">
+          <span class="roi-line-l">Custo MEI Control Pro</span>
+          <span class="roi-line-v neg">− R$ 47</span>
+        </div>
+        <div class="roi-result">
+          <div class="roi-r-lbl">Economia líquida no ano</div>
+          <div class="roi-r-val">+ R$ 200</div>
+          <div class="roi-r-sub">O app se paga no primeiro DAS que ele evita de atrasar.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FEATURES TIMELINE ── -->
+<section class="features" id="features" aria-label="Funcionalidades">
+  <div class="features-hdr rv">
+    <div>
+      <div class="sec-lbl">Funcionalidades</div>
+      <h2 class="sec-title">Um dia com<br>MEI Control Pro.</h2>
+    </div>
+    <p class="sec-sub">
+      Cada funcionalidade resolve uma dor real do MEI — da guia do DAS que vence até o IRPF que assusta todo abril.
+    </p>
+  </div>
+
+  <!-- DAS -->
+  <div class="tl-row rv">
+    <div class="tl-l">
+      <div class="tl-icon">📅</div>
+      <span class="tl-hour">DAS</span>
+    </div>
+    <div class="tl-r">
+      <div class="tl-content">
+        <span class="tl-feat-tag ft-g">📅 Controle de DAS</span>
+        <h3 class="tl-title">Nunca mais pagar multa por atraso de DAS.</h3>
+        <p class="tl-desc">Registre pagamentos mês a mês, veja histórico completo e calcule multas e juros automaticamente se precisar regularizar uma guia antiga. Links diretos para o Portal do Empreendedor.</p>
+        <ul class="tl-list">
+          <li><span class="arr">→</span>Histórico de DAS com status por mês</li>
+          <li><span class="arr">→</span>Cálculo automático de multa + juros</li>
+          <li><span class="arr">→</span>Links diretos para emissão da guia</li>
+          <li><span class="arr">→</span>Exportar relatório em PDF</li>
+        </ul>
+      </div>
+      <div class="tl-vis">
+        <div class="vis-lbl">— Histórico DAS</div>
+        <div class="das-rows">
+          <div class="das-row"><div class="das-dot" style="background:#4ADE80"></div><span class="das-month">Mar/26</span><span class="das-n">R$ 71,60</span><span class="das-s" style="color:#4ADE80">Pago</span></div>
+          <div class="das-row"><div class="das-dot" style="background:#4ADE80"></div><span class="das-month">Abr/26</span><span class="das-n">R$ 71,60</span><span class="das-s" style="color:#4ADE80">Pago</span></div>
+          <div class="das-row"><div class="das-dot" style="background:#4ADE80"></div><span class="das-month">Mai/26</span><span class="das-n">R$ 71,60</span><span class="das-s" style="color:#4ADE80">Pago</span></div>
+          <div class="das-row"><div class="das-dot" style="background:#F59E0B"></div><span class="das-month">Jun/26</span><span class="das-n">R$ 71,60</span><span class="das-s" style="color:#F59E0B">5 dias</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FINANCEIRO -->
+  <div class="tl-row rv">
+    <div class="tl-l">
+      <div class="tl-icon">💰</div>
+      <span class="tl-hour">Financeiro</span>
+    </div>
+    <div class="tl-r">
+      <div class="tl-content">
+        <span class="tl-feat-tag ft-a">💰 Gestão Financeira</span>
+        <h3 class="tl-title">Saldo, receitas e despesas num só lugar.</h3>
+        <p class="tl-desc">Registre entradas e saídas com categorias, filtre por mês e veja o gráfico de evolução dos últimos 6 meses. No fim do mês, exporte um relatório completo em PDF para sua contadora.</p>
+        <ul class="tl-list">
+          <li><span class="arr">→</span>Receitas e despesas com categorias</li>
+          <li><span class="arr">→</span>Filtro por mês e resumo de saldo</li>
+          <li><span class="arr">→</span>Gráfico de evolução de 6 meses</li>
+          <li><span class="arr">→</span>Relatório PDF completo com logo</li>
+        </ul>
+      </div>
+      <div class="tl-vis">
+        <div class="vis-lbl">— Faturamento do mês</div>
+        <div class="fin-sum">
+          <div class="fin-lbl">Receita confirmada</div>
+          <div class="fin-val">R$ 4.200</div>
+        </div>
+        <div class="fin-chart">
+          <div class="fb" style="height:45%"></div>
+          <div class="fb md" style="height:62%"></div>
+          <div class="fb" style="height:50%"></div>
+          <div class="fb md" style="height:80%"></div>
+          <div class="fb" style="height:58%"></div>
+          <div class="fb hi" style="height:92%"></div>
+          <div class="fb md" style="height:72%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- IRPF -->
+  <div class="tl-row rv">
+    <div class="tl-l">
+      <div class="tl-icon">📊</div>
+      <span class="tl-hour">IRPF</span>
+    </div>
+    <div class="tl-r">
+      <div class="tl-content">
+        <span class="tl-feat-tag ft-t">📊 Simulador IRPF</span>
+        <h3 class="tl-title">Descubra em 30 segundos se precisa declarar IR.</h3>
+        <p class="tl-desc">Informe sua atividade MEI e os rendimentos do ano — o simulador calcula se você precisa ou não declarar o Imposto de Renda, com base nas regras da Receita Federal. Sem advinha, sem ansiedade.</p>
+        <ul class="tl-list">
+          <li><span class="arr">→</span>Suporte a 5 atividades MEI</li>
+          <li><span class="arr">→</span>Pré-carrega atividade já cadastrada</li>
+          <li><span class="arr">→</span>Resultado claro: isento ou obrigado</li>
+          <li><span class="arr">→</span>Baseado nas regras vigentes da Receita</li>
+        </ul>
+      </div>
+      <div class="tl-vis">
+        <div class="vis-lbl">— Simulação IRPF 2025</div>
+        <div class="irpf-rows">
+          <div class="irpf-row"><span class="irpf-row-l">Receita bruta MEI</span><span class="irpf-row-v">R$ 50.400</span></div>
+          <div class="irpf-row"><span class="irpf-row-l">Parcela isenta</span><span class="irpf-row-v">R$ 28.800</span></div>
+          <div class="irpf-row"><span class="irpf-row-l">Rendimento tributável</span><span class="irpf-row-v">R$ 21.600</span></div>
+          <div class="irpf-row"><span class="irpf-row-l">Limiar obrigatoriedade</span><span class="irpf-row-v">R$ 30.639</span></div>
+        </div>
+        <div class="irpf-result">
+          <div class="irpf-result-lbl">Resultado</div>
+          <div class="irpf-result-v">✓ Isento</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ── HOW IT WORKS ── -->
+<section class="how" id="how" aria-label="Como funciona">
+  <div class="w">
+    <div class="rv">
+      <div class="sec-lbl">Como funciona</div>
+      <h2 class="sec-title">Pronto em 3 passos.<br>Sem assinatura.</h2>
+      <p class="sec-sub" style="margin-top:14px">Baixe, pague uma vez e use para sempre — sem login em nuvem, sem dados enviados para a empresa.</p>
+    </div>
+
+    <div class="how-grid">
+      <div class="how-card rv">
+        <div class="how-num">Passo 01</div>
+        <div class="how-icon">📲</div>
+        <h3>Baixe no Google Play</h3>
+        <p>O app é gratuito para download. Instale normalmente — sem aviso de "fonte desconhecida", sem APK externo.</p>
+      </div>
+      <div class="how-card rv">
+        <div class="how-num">Passo 02</div>
+        <div class="how-icon">💳</div>
+        <h3>Pague uma vez</h3>
+        <p>Clique em "Ativar acesso" dentro do app, pague R$ 47 via Pix ou cartão. Você recebe o código de ativação por e-mail.</p>
+      </div>
+      <div class="how-card rv">
+        <div class="how-num">Passo 03</div>
+        <div class="how-icon">📈</div>
+        <h3>Use para sempre</h3>
+        <p>Insira o código e pronto — acesso vitalício. Sem renovação, sem mensalidade. Atualizações inclusas.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── PRICING ── -->
+<section class="pricing" id="pricing" aria-label="Preço">
+  <div class="w">
+    <div class="pricing-hdr rv">
+      <div class="sec-lbl">Preço</div>
+      <h2 class="sec-title">Um preço.<br>Para sempre.</h2>
+      <p class="sec-sub" style="margin-top:14px">Sem planos, sem níveis, sem pegadinha. Pague uma vez e tenha tudo — incluindo todas as atualizações futuras.</p>
+    </div>
+
+    <div class="pricing-center rv">
+      <div class="pc">
+        <div class="pop-badge">Acesso vitalício</div>
+        <div class="pc-name">MEI Control Pro</div>
+        <div class="pc-price">
+          <span class="pc-curr">R$</span>
+          <span class="pc-num2">47</span>
+        </div>
+        <div class="pc-per">pagamento único</div>
+        <div class="pc-once">⚡ Sem renovação. Sem mensalidade.</div>
+        <div class="pc-hr"></div>
+        <ul class="pc-feats">
+          <li>Dashboard com KPIs e gráficos</li>
+          <li>Controle completo de DAS + alertas</li>
+          <li>Gestão financeira com relatórios PDF</li>
+          <li>Simulador IRPF (5 atividades)</li>
+          <li>Funciona 100% offline</li>
+          <li>Backup automático no Google Drive</li>
+          <li>Todas as atualizações inclusas</li>
+          <li>Suporte por e-mail</li>
+        </ul>
+        <a href="https://play.google.com/store/apps/details?id=br.com.sismeipro.kit" class="pc-btn" target="_blank" rel="noopener">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3.18 23.76c.37.2.8.2 1.17-.02l11.83-6.86-2.55-2.55-10.45 9.43zM.52 1.56C.2 1.93 0 2.47 0 3.16v17.68c0 .69.2 1.23.53 1.6l.08.08 9.9-9.9v-.23L.6 1.48l-.08.08zM20.5 10.45l-2.38-1.38-2.83 2.83 2.83 2.83 2.4-1.4c.68-.4.68-1.48-.02-1.88zM4.35.24L16.18 7.1l-2.55 2.55L3.18.22C3.55 0 3.98.02 4.35.24z"/></svg>
+          Baixar no Google Play
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FINAL CTA ── -->
+<section class="final-cta">
+  <div class="w">
+    <div class="cta-box rv">
+      <div class="cta-l">
+        <div class="cta-label">
+          <span class="live-dot"></span>
+          Pagamento único · sem mensalidade · sem cartão recorrente
+        </div>
+        <h2 class="cta-h2">Controle seu MEI<br><em>de onde estiver.</em></h2>
+        <p class="cta-p">Sem planilha, sem papel, sem esquecer o DAS. Tudo no celular, funcionando offline — do primeiro lançamento ao relatório do contador.</p>
+      </div>
+
+      <div class="cta-r">
+        <a href="https://play.google.com/store/apps/details?id=br.com.sismeipro.kit" class="btn-g" style="justify-content:center" target="_blank" rel="noopener">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3.18 23.76c.37.2.8.2 1.17-.02l11.83-6.86-2.55-2.55-10.45 9.43zM.52 1.56C.2 1.93 0 2.47 0 3.16v17.68c0 .69.2 1.23.53 1.6l.08.08 9.9-9.9v-.23L.6 1.48l-.08.08zM20.5 10.45l-2.38-1.38-2.83 2.83 2.83 2.83 2.4-1.4c.68-.4.68-1.48-.02-1.88zM4.35.24L16.18 7.1l-2.55 2.55L3.18.22C3.55 0 3.98.02 4.35.24z"/></svg>
+          Baixar no Google Play
+        </a>
+        <ul class="cta-perks">
+          <li><span class="pk">✓</span>R$ 47 — pagamento único</li>
+          <li><span class="pk">✓</span>Dados só no seu celular</li>
+          <li><span class="pk">✓</span>Funciona sem internet</li>
+          <li><span class="pk">✓</span>Backup no Google Drive</li>
+          <li><span class="pk">✓</span>Atualizações para sempre</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-in">
+    <div class="ft-brand">
+      <div class="ft-brand-dot"></div>
+      MEI Control Pro
+    </div>
+    <nav class="ft-links">
+      <a href="#features">Funcionalidades</a>
+      <a href="#how">Como funciona</a>
+      <a href="#pricing">Preço</a>
+      <a href="https://sismeipro.com.br/privacidade-app">Política de Privacidade</a>
+      <a href="mailto:contato@sismeipro.com.br">Suporte</a>
+    </nav>
+    <div class="ft-copy">© 2026 MEI Control Pro · SismeiPro</div>
+  </div>
+</footer>
+
+<script>
+  /* ── Tema ── */
+  (function(){
+    var t = localStorage.getItem('mei-theme');
+    if(t==='light') document.documentElement.classList.add('light');
+  })();
+
+  document.getElementById('themeToggle').addEventListener('click', function() {
+    var isLight = document.documentElement.classList.toggle('light');
+    localStorage.setItem('mei-theme', isLight ? 'light' : 'dark');
+  });
+
+  /* ── Scroll reveal ── */
+  var rvObserver = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry, i) {
+      if (entry.isIntersecting) {
+        setTimeout(function() { entry.target.classList.add('in'); }, i * 60);
+        rvObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.rv').forEach(function(el) { rvObserver.observe(el); });
+</script>
+
+</body>
+</html>

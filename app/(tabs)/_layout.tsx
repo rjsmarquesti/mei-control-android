@@ -3,8 +3,9 @@ import { Tabs, router } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { COLORS } from '../../constants/theme'
-import { getConfig } from '../../lib/db'
+import { getConfig, criarRecorrenciasMensais } from '../../lib/db'
 import { fetchMeiConfig } from '../../lib/mei-config'
+import { agendarLembreteMensalDAS } from '../../lib/notifications'
 
 type IoniconName = React.ComponentProps<typeof Ionicons>['name']
 
@@ -19,7 +20,9 @@ export default function TabsLayout() {
     if (getConfig('activated') !== 'true') {
       router.replace('/ativar')
     } else {
-      fetchMeiConfig() // atualiza cache em background, sem bloquear o app
+      fetchMeiConfig()
+      agendarLembreteMensalDAS().catch(() => {})
+      criarRecorrenciasMensais()
     }
   }, [])
 

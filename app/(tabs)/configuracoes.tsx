@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, Alert, TextInput } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import Constants from 'expo-constants'
 import { useFocusEffect, router } from 'expo-router'
 import { getConfig, setConfig, resetAllData, getDasList } from '../../lib/db'
 import { agendarAlertasDAS, enviarNotificacaoTeste, requestNotificationPermission } from '../../lib/notifications'
@@ -235,7 +236,7 @@ export default function ConfiguracoesScreen() {
         <View style={s.card}>
           {[
             ['Produto', 'MEI Control Pro — PRO'],
-            ['Versão', '1.0.0'],
+            ['Versão', Constants.expoConfig?.version ?? '1.1.0'],
             ['Desenvolvido por', 'sismeipro.com.br'],
             ['Limite MEI 2025', 'R$ 81.000,00/ano'],
           ].map(([label, value]) => (
