@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useFocusEffect } from 'expo-router'
 import { BarChart } from 'react-native-gifted-charts'
 import { getTransactions, getDasList, getConfig } from '../../lib/db'
+import { getSecure } from '../../lib/secure'
 import { calcularDasComAtraso, valorDasMEI } from '../../lib/das'
 import { getMeiConfig } from '../../lib/mei-config'
 import { verificarAlerteLimiteMEI } from '../../lib/notifications'
@@ -42,8 +43,8 @@ export default function DashboardScreen() {
 
   useFocusEffect(useCallback(() => { loadData() }, []))
 
-  function loadData() {
-    setEmail(getConfig('email') ?? '')
+  async function loadData() {
+    setEmail((await getSecure('email')) ?? '')
     setNome(getConfig('razaoSocial') ?? getConfig('nomeFantasia') ?? '')
     const cnpjRaw = getConfig('cnpj') ?? ''
     const d = cnpjRaw.replace(/\D/g, '')

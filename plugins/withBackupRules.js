@@ -3,14 +3,16 @@ const fs = require('fs')
 const path = require('path')
 
 // Android 12+ usa data-extraction-rules (targetSdkVersion 35 no Expo SDK 56)
+// DB excluído: dados financeiros não criptografados não devem ir para backup na nuvem.
+// Usuário exporta via CSV manualmente quando quiser portabilidade.
 const BACKUP_RULES = `<?xml version="1.0" encoding="utf-8"?>
 <data-extraction-rules>
   <cloud-backup>
-    <include domain="database" path="MeiControlKit.db"/>
+    <exclude domain="database" path="MeiControlKit.db"/>
     <exclude domain="sharedpref" path="activated"/>
   </cloud-backup>
   <device-transfer>
-    <include domain="database" path="MeiControlKit.db"/>
+    <exclude domain="database" path="MeiControlKit.db"/>
     <exclude domain="sharedpref" path="activated"/>
   </device-transfer>
 </data-extraction-rules>`

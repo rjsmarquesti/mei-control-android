@@ -7,6 +7,7 @@ import { router } from 'expo-router'
 import Constants from 'expo-constants'
 import { validateCode } from '../lib/activation'
 import { setConfig, getConfig } from '../lib/db'
+import { setSecure } from '../lib/secure'
 import { COLORS, FONTS, RADIUS } from '../constants/theme'
 
 const APP_VERSION = Constants.expoConfig?.version ?? '1.0'
@@ -107,7 +108,7 @@ export default function AtivarScreen() {
       }
 
       setConfig('activated', 'true')
-      setConfig('email', emailTrimmed)
+      await setSecure('email', emailTrimmed)
       setConfig('activationAttempts', '0')
       setConfig('activationLockedUntil', '0')
       router.replace('/(tabs)/dashboard')

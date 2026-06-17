@@ -9,7 +9,7 @@ export async function exportFinanceiroCSV(transactions: Transaction[], mesAno: s
     return `${t.data},${desc},${t.categoria},${t.type},${t.valor.toFixed(2).replace('.', ',')}`
   }).join('\n')
 
-  const fileUri = `${FileSystem.documentDirectory}Financeiro-${mesAno}.csv`
+  const fileUri = `${FileSystem.cacheDirectory}Financeiro-${mesAno}.csv`
   await FileSystem.writeAsStringAsync(fileUri, header + rows, { encoding: FileSystem.EncodingType.UTF8 })
   await Sharing.shareAsync(fileUri, {
     mimeType: 'text/csv',
