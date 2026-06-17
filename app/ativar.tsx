@@ -5,7 +5,8 @@ import {
 } from 'react-native'
 import { router } from 'expo-router'
 import Constants from 'expo-constants'
-import { validateCode } from '../lib/activation'
+import { activateOnline } from '../lib/activation'
+import { setToken, setSecure } from '../lib/secure'
 import { setConfig, getConfig } from '../lib/db'
 import { setSecure } from '../lib/secure'
 import { COLORS, FONTS, RADIUS } from '../constants/theme'
@@ -83,8 +84,9 @@ export default function AtivarScreen() {
 
     setLoading(true)
     try {
-      const ok = await validateCode(emailTrimmed, codigoTrimmed)
-      if (!ok) {
+      const result = await activateOnline(emailTrimmed, codigoTrimmed)
+
+      if (!result.ok) {
         const novas = getTentativas() + 1
         setConfig('activationAttempts', String(novas))
         setTentativas(novas)
@@ -93,24 +95,19 @@ export default function AtivarScreen() {
           const ate = Date.now() + LOCKOUT_MS
           setConfig('activationLockedUntil', String(ate))
           setSegundosRestantes(LOCKOUT_MS / 1000)
-          Alert.alert(
-            'Muitas tentativas',
-            `Você excedeu ${MAX_TENTATIVAS} tentativas. Tente novamente em 30 minutos.`
-          )
+          Alert.alert('Muitas tentativas', `Você excedeu ${MAX_TENTATIVAS} tentativas. Tente novamente em 30 minutos.`)
         } else {
           const restam = MAX_TENTATIVAS - novas
-          Alert.alert(
-            'Código inválido',
-            `Verifique o e-mail e o código.\n${restam} tentativa${restam > 1 ? 's' : ''} restante${restam > 1 ? 's' : ''}.`
-          )
+          Alert.alert('Código inválido', `${result.error ?? 'Verifique o e-mail e o código.'}\n${restam} tentativa${restam > 1 ? 's' : ''} restante${restam > 1 ? 's' : ''}.`)
         }
         return
       }
 
-      setConfig('activated', 'true')
+      await setToken(result.token!)
       await setSecure('email', emailTrimmed)
       setConfig('activationAttempts', '0')
       setConfig('activationLockedUntil', '0')
+      setConfig('lastTokenVerified', String(Date.now()))
       router.replace('/(tabs)/dashboard')
     } catch {
       Alert.alert('Erro', 'Não foi possível validar o código. Tente novamente.')

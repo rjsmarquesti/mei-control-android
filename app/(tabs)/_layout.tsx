@@ -3,9 +3,11 @@ import { Tabs, router } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { COLORS } from '../../constants/theme'
-import { getConfig, criarRecorrenciasMensais } from '../../lib/db'
+import { getConfig, setConfig, criarRecorrenciasMensais } from '../../lib/db'
 import { fetchMeiConfig } from '../../lib/mei-config'
 import { agendarLembreteMensalDAS } from '../../lib/notifications'
+import { getToken, clearAuth } from '../../lib/secure'
+import { verifyTokenOnline } from '../../lib/activation'
 
 type IoniconName = React.ComponentProps<typeof Ionicons>['name']
 
@@ -17,13 +19,31 @@ export default function TabsLayout() {
   const insets = useSafeAreaInsets()
 
   useEffect(() => {
-    if (getConfig('activated') !== 'true') {
-      router.replace('/ativar')
-    } else {
+    async function checkAuth() {
+      const token = await getToken()
+      if (!token) {
+        router.replace('/ativar')
+        return
+      }
+
       fetchMeiConfig()
       agendarLembreteMensalDAS().catch(() => {})
       criarRecorrenciasMensais()
+
+      // Revalida online a cada 7 dias — silencioso, não bloqueia o usuário
+      const lastVerified = parseInt(getConfig('lastTokenVerified') ?? '0')
+      const sevenDays = 7 * 24 * 60 * 60 * 1000
+      if (Date.now() - lastVerified > sevenDays) {
+        verifyTokenOnline(token).then(valid => {
+          if (!valid) {
+            clearAuth().then(() => router.replace('/ativar'))
+          } else {
+            setConfig('lastTokenVerified', String(Date.now()))
+          }
+        })
+      }
     }
+    checkAuth()
   }, [])
 
   return (
