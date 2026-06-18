@@ -25,22 +25,22 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v4.4.0
         with:
           node-version: '20'
           cache: 'npm'
 
       - name: Setup Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v4.7.1
         with:
           distribution: 'temurin'
           java-version: '17'
 
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v3.2.2
 
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
@@ -89,7 +89,7 @@ jobs:
 
       - name: Upload APK
         if: ${{ github.event.inputs.profile != 'aab' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: mei-control-pro-${{ github.ref_name }}.apk
           path: android/app/build/outputs/apk/release/app-release.apk
@@ -97,7 +97,7 @@ jobs:
 
       - name: Upload AAB
         if: ${{ github.event.inputs.profile == 'aab' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: mei-control-pro-${{ github.ref_name }}.aab
           path: android/app/build/outputs/bundle/release/app-release.aab
