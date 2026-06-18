@@ -8,7 +8,6 @@ import Constants from 'expo-constants'
 import { activateOnline } from '../lib/activation'
 import { setToken, setSecure } from '../lib/secure'
 import { setConfig, getConfig } from '../lib/db'
-import { setSecure } from '../lib/secure'
 import { COLORS, FONTS, RADIUS } from '../constants/theme'
 
 const APP_VERSION = Constants.expoConfig?.version ?? '1.0'
