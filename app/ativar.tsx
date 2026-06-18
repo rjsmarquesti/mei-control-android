@@ -135,6 +135,9 @@ export default function AtivarScreen() {
         <Text style={s.sub}>
           Insira o e-mail usado na compra e o código recebido por WhatsApp ou e-mail.
         </Text>
+        <View style={s.infoBox}>
+          <Text style={s.infoText}>📶 A ativação requer conexão com a internet.</Text>
+        </View>
 
         {bloqueado && (
           <View style={s.lockBox}>
@@ -209,7 +212,12 @@ const s = StyleSheet.create({
     fontSize: FONTS.sm, fontWeight: '700', overflow: 'hidden',
   },
   title: { fontSize: FONTS['2xl'], fontWeight: '700', color: COLORS.text, marginBottom: 8 },
-  sub: { fontSize: FONTS.base, color: COLORS.textMuted, marginBottom: 28, lineHeight: 20 },
+  sub: { fontSize: FONTS.base, color: COLORS.textMuted, marginBottom: 8, lineHeight: 20 },
+  infoBox: {
+    backgroundColor: COLORS.primaryLight, borderRadius: RADIUS.md,
+    paddingHorizontal: 12, paddingVertical: 8, marginBottom: 20,
+  },
+  infoText: { fontSize: FONTS.sm, color: COLORS.primary, textAlign: 'center' },
   lockBox: {
     backgroundColor: COLORS.dangerLight, borderRadius: RADIUS.lg,
     padding: 16, alignItems: 'center', marginBottom: 20,
