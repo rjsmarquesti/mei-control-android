@@ -13,6 +13,7 @@
     },
     "android": {
       "package": "br.com.sismeipro.kit",
+      "versionCode": 2,
       "allowBackup": true,
       "adaptiveIcon": {
         "backgroundColor": "#7C3AED",
