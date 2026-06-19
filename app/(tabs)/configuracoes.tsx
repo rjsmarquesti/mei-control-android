@@ -4,11 +4,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Constants from 'expo-constants'
 import { useFocusEffect, router } from 'expo-router'
 import { getConfig, setConfig, resetAllData, getDasList } from '../../lib/db'
-import { agendarAlertasDAS, enviarNotificacaoTeste, requestNotificationPermission } from '../../lib/notifications'
+import { agendarAlertasProgressivosDAS, enviarNotificacaoTeste, requestNotificationPermission } from '../../lib/notifications'
 import { ATIVIDADES, AtividadeId } from '../../lib/irpf'
 import { COLORS, FONTS, RADIUS } from '../../constants/theme'
 
-const DIAS_OPCOES = [1, 3, 5, 7, 10]
 
 function formatCNPJ(raw: string): string {
   const d = raw.replace(/\D/g, '').slice(0, 14)
@@ -35,7 +34,6 @@ function formatCEP(raw: string): string {
 
 export default function ConfiguracoesScreen() {
   const insets = useSafeAreaInsets()
-  const [diasAntes, setDiasAntes] = useState(5)
   const [notifPermitida, setNotifPermitida] = useState(false)
 
   // Perfil
@@ -53,8 +51,6 @@ export default function ConfiguracoesScreen() {
   const [uf, setUf] = useState('')
 
   useFocusEffect(useCallback(() => {
-    const salvo = getConfig('diasAlertaDAS')
-    if (salvo) setDiasAntes(parseInt(salvo))
     requestNotificationPermission().then(setNotifPermitida)
 
     setRazaoSocial(getConfig('razaoSocial') ?? '')
@@ -87,20 +83,15 @@ export default function ConfiguracoesScreen() {
     Alert.alert('Perfil salvo', 'Dados do MEI atualizados com sucesso.')
   }
 
-  function salvarDias(dias: number) {
-    setDiasAntes(dias)
-    setConfig('diasAlertaDAS', String(dias))
-    agendarAlertasDAS(getDasList(), dias)
-  }
-
   async function testarNotificacao() {
     const ok = await requestNotificationPermission()
     if (!ok) {
       Alert.alert('Permissão negada', 'Ative as notificações nas configurações do celular.')
       return
     }
+    await agendarAlertasProgressivosDAS(getDasList())
     await enviarNotificacaoTeste()
-    Alert.alert('Teste enviado', 'A notificação aparecerá em 2 segundos.')
+    Alert.alert('Teste enviado', 'A notificação aparecerá em 2 segundos. Alertas de DAS reagendados.')
   }
 
   function confirmarReset() {
@@ -198,14 +189,9 @@ export default function ConfiguracoesScreen() {
         {/* ALERTAS DAS */}
         <Text style={s.sectionTitle}>Alertas de DAS</Text>
         <View style={s.card}>
-          <Text style={s.cardLabel}>Avisar quantos dias antes do vencimento?</Text>
-          <View style={s.diasRow}>
-            {DIAS_OPCOES.map(d => (
-              <TouchableOpacity key={d} style={[s.diaBtn, diasAntes === d && s.diaBtnActive]} onPress={() => salvarDias(d)}>
-                <Text style={[s.diaBtnText, diasAntes === d && s.diaBtnTextActive]}>{d}d</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          <Text style={s.alertaInfo}>
+            {'📅 15 dias antes do vencimento\n📅 7 dias antes do vencimento\n⚠️ 1 dia antes do vencimento\n🚨 No dia do vencimento'}
+          </Text>
           <TouchableOpacity style={s.testBtn} onPress={testarNotificacao}>
             <Text style={s.testBtnText}>Testar notificação agora</Text>
           </TouchableOpacity>
@@ -322,11 +308,7 @@ const s = StyleSheet.create({
   },
   saveBtnText: { color: '#fff', fontWeight: '700', fontSize: FONTS.base },
   cardLabel: { fontSize: FONTS.sm, color: COLORS.textMuted, marginBottom: 12 },
-  diasRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', marginBottom: 16 },
-  diaBtn: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.border },
-  diaBtnActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
-  diaBtnText: { fontSize: FONTS.sm, color: COLORS.textMuted, fontWeight: '600' },
-  diaBtnTextActive: { color: '#fff' },
+  alertaInfo: { fontSize: FONTS.sm, color: COLORS.text, lineHeight: 22, marginBottom: 16 },
   testBtn: { borderWidth: 1, borderColor: COLORS.primary, borderRadius: RADIUS.md, padding: 10, alignItems: 'center' },
   testBtnText: { color: COLORS.primary, fontWeight: '600', fontSize: FONTS.sm },
   aviso: { fontSize: FONTS.sm, color: COLORS.warning, marginTop: 10 },

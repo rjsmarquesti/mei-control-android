@@ -5,7 +5,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { COLORS } from '../../constants/theme'
 import { getConfig, setConfig, criarRecorrenciasMensais } from '../../lib/db'
 import { fetchMeiConfig } from '../../lib/mei-config'
-import { agendarLembreteMensalDAS } from '../../lib/notifications'
+import { agendarLembreteMensalDAS, agendarAlertasProgressivosDAS } from '../../lib/notifications'
+import { getDasList } from '../../lib/db'
 import { getToken, clearAuth } from '../../lib/secure'
 import { verifyTokenOnline } from '../../lib/activation'
 
@@ -28,6 +29,7 @@ export default function TabsLayout() {
 
       fetchMeiConfig()
       agendarLembreteMensalDAS().catch(() => {})
+      agendarAlertasProgressivosDAS(getDasList()).catch(() => {})
       criarRecorrenciasMensais()
 
       // Revalida online a cada 7 dias — silencioso, não bloqueia o usuário

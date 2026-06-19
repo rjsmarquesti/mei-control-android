@@ -10,6 +10,7 @@ import { useFocusEffect } from 'expo-router'
 import * as ScreenCapture from 'expo-screen-capture'
 import { Ionicons } from '@expo/vector-icons'
 import { getDasList, upsertDas, updateDas, marcarDasPago, deleteDas, DasRow } from '../../lib/db'
+import { agendarAlertasProgressivosDAS } from '../../lib/notifications'
 import { calcularDasComAtraso, vencimentoDas, valorDasMEI } from '../../lib/das'
 import { exportDasPDF } from '../../lib/pdf'
 import { openGovLink } from '../../lib/gov-links'
@@ -69,13 +70,14 @@ export default function DasScreen() {
     setModalVisible(false)
     setEditingId(null)
     load()
+    agendarAlertasProgressivosDAS(getDasList()).catch(() => {})
   }
 
   function confirmarPagamento(item: DasRow) {
     const hoje = new Date().toISOString().slice(0, 10)
     Alert.alert('Marcar como pago', `Confirmar pagamento do DAS de ${item.competencia}?`, [
       { text: 'Cancelar', style: 'cancel' },
-      { text: 'Confirmar', onPress: () => { marcarDasPago(item.competencia, hoje); load() } },
+      { text: 'Confirmar', onPress: () => { marcarDasPago(item.competencia, hoje); load(); agendarAlertasProgressivosDAS(getDasList()).catch(() => {}) } },
     ])
   }
 

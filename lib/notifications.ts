@@ -18,43 +18,58 @@ export async function requestNotificationPermission(): Promise<boolean> {
   return status === 'granted'
 }
 
-export async function agendarAlertasDAS(das: DasRow[], diasAntes: number): Promise<void> {
+export async function agendarAlertasProgressivosDAS(
+  das: DasRow[],
+  diasAntes: number[] = [15, 7, 1]
+): Promise<void> {
   const granted = await requestNotificationPermission()
   if (!granted) return
 
-  await Notifications.cancelAllScheduledNotificationsAsync()
+  // Cancela apenas notificações de DAS — preserva lembrete mensal e alertas de limite
+  const agendadas = await Notifications.getAllScheduledNotificationsAsync()
+  const dasCancelIds = agendadas
+    .filter(n => n.content.data?.tipo === 'alerta_das')
+    .map(n => n.identifier)
+  await Promise.all(dasCancelIds.map(id => Notifications.cancelScheduledNotificationAsync(id)))
 
   const hoje = new Date()
 
   for (const d of das) {
     if (d.pago) continue
-
     const venc = new Date(d.vencimento + 'T00:00:00')
-    const alerta = new Date(venc)
-    alerta.setDate(alerta.getDate() - diasAntes)
 
-    if (alerta > hoje) {
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: '📅 DAS vence em breve',
-          body: `Competência ${d.competencia} vence em ${diasAntes} dia${diasAntes !== 1 ? 's' : ''} (${d.vencimento}).`,
-          data: { competencia: d.competencia },
-        },
-        trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: alerta },
-      })
+    for (const dias of diasAntes) {
+      const alerta = new Date(venc)
+      alerta.setDate(alerta.getDate() - dias)
+      if (alerta > hoje) {
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: dias === 1 ? '⚠️ DAS vence amanhã!' : `📅 DAS vence em ${dias} dias`,
+            body: `Competência ${d.competencia} vence em ${d.vencimento}. Evite multa de 2% + juros.`,
+            data: { tipo: 'alerta_das', competencia: d.competencia },
+          },
+          trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: alerta },
+        })
+      }
     }
 
+    // Alerta no próprio dia do vencimento
     if (venc > hoje) {
       await Notifications.scheduleNotificationAsync({
         content: {
-          title: '⚠️ DAS vence hoje!',
-          body: `Competência ${d.competencia} vence hoje. Evite multa e juros.`,
-          data: { competencia: d.competencia },
+          title: '🚨 DAS vence hoje!',
+          body: `Competência ${d.competencia} vence hoje. Pague agora para evitar multa.`,
+          data: { tipo: 'alerta_das', competencia: d.competencia },
         },
         trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: venc },
       })
     }
   }
+}
+
+// Alias para compatibilidade — uso interno legado
+export async function agendarAlertasDAS(das: DasRow[], _diasAntes: number): Promise<void> {
+  return agendarAlertasProgressivosDAS(das)
 }
 
 export async function agendarLembreteMensalDAS(): Promise<void> {
@@ -108,7 +123,7 @@ export async function enviarNotificacaoTeste(): Promise<void> {
   await Notifications.scheduleNotificationAsync({
     content: {
       title: '✅ Notificações funcionando',
-      body: 'Você receberá alertas de DAS conforme configurado.',
+      body: 'Você receberá alertas de DAS 15, 7 e 1 dia antes do vencimento.',
     },
     trigger: { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds: 2 },
   })
