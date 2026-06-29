@@ -134,6 +134,16 @@ export default function AtivarScreen() {
         <Text style={s.sub}>
           Insira o e-mail usado na compra e o código recebido por WhatsApp ou e-mail.
         </Text>
+
+        <View style={s.buyBox}>
+          <Text style={s.buyTitle}>Como obter o código?</Text>
+          <Text style={s.buyText}>
+            {'1. Acesse '}
+            <Text style={s.buyLink}>kit.sismeipro.com.br</Text>
+            {'\n2. Conclua o pagamento\n3. Receba o código por WhatsApp e e-mail\n4. Volte aqui e ative'}
+          </Text>
+        </View>
+
         <View style={s.infoBox}>
           <Text style={s.infoText}>📶 A ativação requer conexão com a internet.</Text>
         </View>
@@ -192,8 +202,13 @@ export default function AtivarScreen() {
           </TouchableOpacity>
         </View>
 
+        <Text style={s.disclaimer}>
+          Este aplicativo é independente e não representa nenhum órgão governamental brasileiro.
+          Informações baseadas em dados do Portal do Empreendedor (gov.br/empreendedor) e Receita Federal (gov.br/receitafederal).
+        </Text>
+
         <Text style={s.help}>
-          Não recebeu o código? Entre em contato pelo WhatsApp da sismeipro.com.br
+          Não recebeu o código? Entre em contato pelo WhatsApp em sismeipro.com.br
         </Text>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -238,6 +253,18 @@ const s = StyleSheet.create({
   btn: { backgroundColor: COLORS.primary, borderRadius: RADIUS.md, paddingVertical: 14, alignItems: 'center', marginTop: 4 },
   btnDisabled: { opacity: 0.6 },
   btnText: { color: '#fff', fontSize: FONTS.md, fontWeight: '700' },
-  help: { marginTop: 24, fontSize: FONTS.sm, color: COLORS.textLight, textAlign: 'center', lineHeight: 18 },
+  buyBox: {
+    backgroundColor: '#F5F0FF', borderRadius: RADIUS.md,
+    padding: 14, marginBottom: 12,
+    borderWidth: 1, borderColor: COLORS.primaryLight,
+  },
+  buyTitle: { fontSize: FONTS.sm, fontWeight: '700', color: COLORS.primary, marginBottom: 6 },
+  buyText: { fontSize: FONTS.sm, color: COLORS.textMuted, lineHeight: 20 },
+  buyLink: { color: COLORS.primary, fontWeight: '600' },
+  disclaimer: {
+    marginTop: 20, fontSize: FONTS.xs ?? 11, color: COLORS.textLight,
+    textAlign: 'center', lineHeight: 16, fontStyle: 'italic',
+  },
+  help: { marginTop: 10, fontSize: FONTS.sm, color: COLORS.textLight, textAlign: 'center', lineHeight: 18 },
   version: { fontSize: FONTS.xs ?? 11, color: COLORS.textLight, marginTop: 4 },
 })
