@@ -138,9 +138,7 @@ export default function AtivarScreen() {
         <View style={s.buyBox}>
           <Text style={s.buyTitle}>Como obter o código?</Text>
           <Text style={s.buyText}>
-            {'1. Acesse '}
-            <Text style={s.buyLink}>kit.sismeipro.com.br</Text>
-            {'\n2. Conclua o pagamento\n3. Receba o código por WhatsApp e e-mail\n4. Volte aqui e ative'}
+            O código de ativação é fornecido diretamente pelo desenvolvedor após a licença ser emitida. Verifique seu WhatsApp ou e-mail cadastrado.
           </Text>
         </View>
 
