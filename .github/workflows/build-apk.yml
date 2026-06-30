@@ -74,6 +74,7 @@ jobs:
             -Pandroid.injected.signing.key.password=${{ secrets.KEY_PASSWORD }}
         env:
           EXPO_PUBLIC_ACTIVATION_SALT: ${{ secrets.ACTIVATION_SALT }}
+          GRADLE_OPTS: -Xmx4096m -XX:MaxMetaspaceSize=512m
 
       - name: Build AAB (Play Store)
         if: ${{ github.event.inputs.profile == 'aab' }}
@@ -86,6 +87,7 @@ jobs:
             -Pandroid.injected.signing.key.password=${{ secrets.KEY_PASSWORD }}
         env:
           EXPO_PUBLIC_ACTIVATION_SALT: ${{ secrets.ACTIVATION_SALT }}
+          GRADLE_OPTS: -Xmx4096m -XX:MaxMetaspaceSize=512m
 
       - name: Upload APK
         if: ${{ github.event.inputs.profile != 'aab' }}
