@@ -20,10 +20,17 @@ export async function openGovLink(key: GovLinkKey): Promise<void> {
   if (!canOpen) {
     Alert.alert(
       'Sem conexão',
-      'Você precisa de internet para acessar o site do governo federal.',
+      'Você precisa de internet para acessar o portal externo.',
       [{ text: 'OK' }]
     )
     return
   }
-  await Linking.openURL(url)
+  Alert.alert(
+    'Abrindo site externo',
+    'Você será redirecionado para um portal oficial do governo (gov.br). O SismeiPro é independente e não possui vínculo com o governo.',
+    [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Continuar', onPress: () => Linking.openURL(url) },
+    ]
+  )
 }

@@ -221,7 +221,7 @@ export default function ConfiguracoesScreen() {
         <Text style={s.sectionTitle}>Sobre</Text>
         <View style={s.card}>
           {[
-            ['Produto', 'MEI Control Pro — PRO'],
+            ['Produto', 'SismeiPro — PRO'],
             ['Versão', Constants.expoConfig?.version ?? '1.1.0'],
             ['Desenvolvido por', 'sismeipro.com.br'],
             ['Limite MEI 2025', 'R$ 81.000,00/ano'],

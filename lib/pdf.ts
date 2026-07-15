@@ -67,14 +67,14 @@ function buildHtml(title: string, subtitle: string, body: string): string {
 <body>
   <div class="header">
     <div>
-      ${headerPerfil || '<h1>MEI Control Pro</h1>'}
+      ${headerPerfil || '<h1>SismeiPro</h1>'}
       <p style="font-size:13px; font-weight:600; color:#333; margin-top:6px;">${title}</p>
       <p style="font-size:11px; color:#777;">${subtitle}</p>
     </div>
     <span class="badge">PRO</span>
   </div>
   ${body}
-  <div class="footer">Gerado em ${geradoEm} · MEI Control Pro PRO</div>
+  <div class="footer">Gerado em ${geradoEm} · SismeiPro</div>
 </body>
 </html>`
 }

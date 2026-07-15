@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "MEI Control Pro",
+    "name": "SismeiPro",
     "slug": "mei-control-android",
-    "version": "1.4.2",
+    "version": "1.4.3",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -13,7 +13,7 @@
     },
     "android": {
       "package": "br.com.sismeipro.kit",
-      "versionCode": 5,
+      "versionCode": 6,
       "allowBackup": true,
       "adaptiveIcon": {
         "backgroundColor": "#7C3AED",

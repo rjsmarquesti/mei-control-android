@@ -12,8 +12,12 @@ import { COLORS, FONTS, RADIUS } from '../constants/theme'
 
 const APP_VERSION = Constants.expoConfig?.version ?? '1.0'
 
-const MAX_TENTATIVAS = 5
-const LOCKOUT_MS = 30 * 60 * 1000  // 30 minutos
+const MAX_TENTATIVAS = 10
+const LOCKOUT_MS = 5 * 60 * 1000  // 5 minutos
+
+// Credenciais do Google Play reviewer — bypass local, sem depender do servidor
+const REVIEWER_EMAIL = 'reviewer@sismeipro.com.br'
+const REVIEWER_CODE  = 'SISMEI2026'
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 function getTentativas(): number {
@@ -81,6 +85,17 @@ export default function AtivarScreen() {
       return
     }
 
+    // Bypass local para o Google Play reviewer
+    if (emailTrimmed === REVIEWER_EMAIL && codigoTrimmed === REVIEWER_CODE) {
+      await setToken('REVIEWER_TOKEN_LOCAL')
+      await setSecure('email', emailTrimmed)
+      setConfig('activationAttempts', '0')
+      setConfig('activationLockedUntil', '0')
+      setConfig('lastTokenVerified', String(Date.now()))
+      router.replace('/(tabs)/dashboard')
+      return
+    }
+
     setLoading(true)
     try {
       const result = await activateOnline(emailTrimmed, codigoTrimmed)
@@ -94,7 +109,7 @@ export default function AtivarScreen() {
           const ate = Date.now() + LOCKOUT_MS
           setConfig('activationLockedUntil', String(ate))
           setSegundosRestantes(LOCKOUT_MS / 1000)
-          Alert.alert('Muitas tentativas', `Você excedeu ${MAX_TENTATIVAS} tentativas. Tente novamente em 30 minutos.`)
+          Alert.alert('Muitas tentativas', `Você excedeu ${MAX_TENTATIVAS} tentativas. Tente novamente em 5 minutos.`)
         } else {
           const restam = MAX_TENTATIVAS - novas
           Alert.alert('Código inválido', `${result.error ?? 'Verifique o e-mail e o código.'}\n${restam} tentativa${restam > 1 ? 's' : ''} restante${restam > 1 ? 's' : ''}.`)

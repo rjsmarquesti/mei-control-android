@@ -115,13 +115,13 @@ export default function IRPFScreen() {
             <View style={[s.isentoBox, { backgroundColor: COLORS.primaryLight, marginTop: 10 }]}>
               <Text style={[s.isentoText, { color: COLORS.primary }]}>
                 {comp.economiaMEI > 0
-                  ? `✅ MEI economiza ${fmt(comp.economiaMEI)}/ano em impostos.`
-                  : '⚠️ Simples Nacional pode ser vantajoso. Consulte um contador.'}
+                  ? `Simulação: com MEI o custo tributário seria ${fmt(comp.economiaMEI)}/ano menor. Consulte um contador.`
+                  : '⚠️ Simples Nacional pode ser vantajoso nesta simulação. Consulte um contador.'}
               </Text>
             </View>
             {comp.receitaBruta > 81000 && (
               <View style={[s.isentoBox, { backgroundColor: COLORS.warningLight, marginTop: 8 }]}>
-                <Text style={[s.isentoText, { color: COLORS.warning }]}>⚠️ Receita acima do limite MEI (R$ 81.000/ano). Migração para ME obrigatória.</Text>
+                <Text style={[s.isentoText, { color: COLORS.warning }]}>⚠️ Receita acima do limite MEI (R$ 81.000/ano). Consulte um contador sobre as opções de enquadramento.</Text>
               </View>
             )}
           </View>

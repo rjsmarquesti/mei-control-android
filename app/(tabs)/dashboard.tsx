@@ -134,6 +134,10 @@ export default function DashboardScreen() {
   return (
     <SafeAreaView style={[s.safe, { paddingTop: insets.top }]}>
       <ScrollView contentContainerStyle={[s.container, { paddingBottom: insets.bottom + 40 }]}>
+        <View style={s.disclaimerBar}>
+          <Text style={s.disclaimerBarText}>App independente · Não afiliado ao governo · Dados baseados em fontes públicas oficiais</Text>
+        </View>
+
         <Text style={s.greeting}>{nome ? `Olá, ${nome.split(' ')[0]}! 👋` : 'Olá, MEI! 👋'}</Text>
         {cnpj ? <Text style={s.cnpjText}>CNPJ: {cnpj}</Text> : null}
         {email ? <Text style={s.emailText}>{email}</Text> : null}
@@ -288,4 +292,6 @@ const s = StyleSheet.create({
   dot: { width: 10, height: 10, borderRadius: 5 },
   legendText: { fontSize: FONTS.sm, color: COLORS.textMuted },
   semDados: { textAlign: 'center', color: COLORS.textMuted, paddingVertical: 24, fontSize: FONTS.base },
+  disclaimerBar: { backgroundColor: '#F0FDF4', borderRadius: RADIUS.md, paddingHorizontal: 10, paddingVertical: 6, marginBottom: 12, borderLeftWidth: 3, borderLeftColor: '#22C55E' },
+  disclaimerBarText: { fontSize: 10, color: '#166534', lineHeight: 14 },
 })
