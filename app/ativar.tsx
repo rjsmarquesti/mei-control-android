@@ -17,7 +17,7 @@ const LOCKOUT_MS = 5 * 60 * 1000  // 5 minutos
 
 // Credenciais do Google Play reviewer — bypass local, sem depender do servidor
 const REVIEWER_EMAIL = 'reviewer@sismeipro.com.br'
-const REVIEWER_CODE  = 'SISMEI2026'
+const REVIEWER_CODE  = 'SISMEI26'
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 function getTentativas(): number {
@@ -147,7 +147,7 @@ export default function AtivarScreen() {
 
         <Text style={s.title}>Ativar aplicativo</Text>
         <Text style={s.sub}>
-          Insira o e-mail usado na compra e o código recebido por WhatsApp ou e-mail.
+          Insira o e-mail cadastrado e o código de ativação recebido por WhatsApp ou e-mail junto com o Manual MEI.
         </Text>
 
         <View style={s.buyBox}>
